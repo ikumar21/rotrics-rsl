@@ -23,12 +23,14 @@ if __name__ == "__main__":
     video.open(1,800,600)
     imgB1 = video.get_img(1)
     imgB0 = video.get_img(0)
-    cv2.imwrite("robotC0num1.png", imgB0)
-    cv2.imwrite("robotC1num2.png", imgB1)
+    cv2.imwrite("trial.png", imgB0)
+    cv2.imwrite("trial2.png", imgB1)
     text = []
     time.sleep(5)
-    # pythonImg = cv2.imread("robotBO.jpg")
-    # text[0] =  pytesseract.image_to_string(pythonImg)
+    pythonImg = cv2.imread("trial.png")
+    text.append(pytesseract.image_to_string(pythonImg))
+    pythonImg = cv2.imread("trial2.png")
+    text.append(pytesseract.image_to_string(pythonImg))
     
     
     #img1 = cv2.cvtColor(imgB0, cv2.COLOR_BGR2RGB)

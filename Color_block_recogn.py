@@ -121,8 +121,8 @@ def recogn_main():
     
     video.open(0,640,480)
     #revogn = Color_block_recogn(red_hsv,feature_param,rgb_param)
-    hsv = cv2.cvtColor(video.get_img(1), cv2.COLOR_BGR2HSV)
-    print(hsv)
+    hsv = cv2.cvtColor(video.get_img(1), cv2.COLOR_BGR2RGB)
+    print(len(hsv[5]))
     
     while True:
         break

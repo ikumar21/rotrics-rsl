@@ -119,19 +119,23 @@ class Color_block_recogn():
 
 def recogn_main():
     
-    video.open(0,640,480)
-    #revogn = Color_block_recogn(red_hsv,feature_param,rgb_param)
-    hsv = cv2.cvtColor(video.get_img(1), cv2.COLOR_BGR2RGB)
+    video.open(1,1920,1080)
+    revogn = Color_block_recogn(red_hsv,feature_param,rgb_param)
+    hsv = cv2.cvtColor(video.get_img(0), cv2.COLOR_BGR2RGB)
     print(len(hsv[5]))
     
     while True:
-        break
-        # img,inRange_hsv = revogn.get_target_img(video.get_img(1),1)
-        #print(img)
-        # cv2.imshow('inRange_hsv', inRange_hsv)
-    #     cv2.imshow('src_img', img)
-
-    #     cv2.waitKey(30)
+        
+        img,inRange_hsv = revogn.get_target_img(video.get_img(0),1)
+        print(img)
+        cv2.imshow('inRange_hsv', inRange_hsv)
+        #cv2.imshow('src_img', img)
+        k = cv2.waitKey(1)
+        if k%256 == 27:
+            # ESC pressed
+            print("Escape hit, closing...")
+            break
+        cv2.waitKey(30)
     pass
     pass
 

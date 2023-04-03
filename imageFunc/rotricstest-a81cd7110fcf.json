@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "rotricstest",
+  "private_key_id": "a81cd7110fcf3960cde8d63c9442408cca6405c3",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQD0d6zFEtB3TDFg\nQvbG472acPojsWtL0LRQroLXC4MFMbqGAy/q+1Yg/cTBUutmp5b9Vjv1NhXN25MO\n9UQys9NTkMRmKPDfzRSJBMT9o3l1Bde6LZzn9fTuxK/lxVDkik5Yy7W53Cl2MkD0\nF+NVAVYBAe5WpOokpMIM93yb5pAdlFxHkKroTXu9kS4ZGEWyS91fyr+LzwecvJwa\na8uWgI+M+M3uXM7hU7ATytuBbLVUcO3nFiaqdNkDQGFLRtn472IcMZRfKLRa/cfj\nz509wEL4weI31l9YHbN5e5DXPc6mBThDphY0/IquaykE6VExOucZiYXg5SwmNJ/l\nxHjpaO1BAgMBAAECggEADrUEK6U7jcDDg+61Y07cR046izMLUR/iuCuefxbQBJwK\ntFEc5PBmzKRtrcJ5+1aT26TwZZqxzj0SZFsKpbj6Kr/l4948yv7+yDU1b2uiNQFD\nap2/v7f1GrfyG9LugFhGeTq0oaRCSYxBinnFLTYPzS7XPobMeATCMJbjPAsPcpr+\nJeDcQ6UkAymjfdS0BaCErCKhsL+A6GZsRzHIaxYpJxk4MPJiDXEIHiWSa6NZ8hr/\npRLWjHNWaorwyZNb075KHse/wokq6idnfnbk8abrH32fVGCQx0AgPbw2TcxZ/isy\nwKXaA6LpSjLZ7ULanhwXHXh+jtLigCgpiVkOMyagkQKBgQD8pBxnIqppXLvsN5cD\nfsiRbvL2L3N4w1dISi8ElfpJa0vgeVPuHoi8E25G+GKjKRS8NZ2+HRfowkeg6sHN\n6iTrjOi5D4FKxikfWp9T+xLdMJ/zY8JksWXA/3ZfG8TKsUJSVbXRW1z6HnHVOqt9\nHAx7cLX8mj/7URQP8KKuixP+UQKBgQD3t76NUDmLtInpc6mhZm2Ff+rd+tsxWxSu\nM3SCN4Lk6wZOPs0FNuYjjBdw99++PdpH2qlg07jx/5qwzQJBXO5Wfu4+abEQ36/U\nRVwi5l0Lb+aQ2IprDKpWMb1YqEmy6Nir0ZTinYbphaDw3IFW6mg6/5QLcMwBkp2k\nYaxdbi6T8QKBgQDUgd56Skh5c82GtoPKJtziqCaqOeOxUu6aGfxOqTDsjNo4KRYW\nF40AVn/OJqQhhi6w2ZCkF6jC2piRnKYEZM1FbTNcZtRkZyaz/vBCHdESSRJiEimz\ntRxYKQoSmjMAI/Ybd4kGXwloQi+SIlWZWPyO4JHTtpPW+64aclkE5Gue4QKBgQCx\n2BYTCFS4Kx6UHzjaqlnY7XRmd/IkJhrb0g9Eaawsw1sck9PHeZmSTcKKlTrqLyfm\nTGMsI/T0sKiTZCvJV3m5WZmb729zCNUIVd+HItIMIwNqXDxMDKTCCyXAX9nBe5AL\nEwWMCMJSJ2Dba8Pj7Zh1OwZDjHC6dFN/L6x6y17fUQKBgQD4OxTZ1hk8u4vd+B1+\n9BCn8hyGUu/ZJQLaKixh5BjUr18DuFLWO+WV9yKq03GaCW/LuQ9eHvWqls17OrL5\nzalVcIztGku70IlBgAxT9vEOHSymZivA21qYgEqCtvgxeWYFXm56Z2R5kmAwMkXM\nKhSxEuAhlOiXMX+MMN7lHjHqGg==\n-----END PRIVATE KEY-----\n",
+  "client_email": "rotrics-mac@rotricstest.iam.gserviceaccount.com",
+  "client_id": "110480732235032811887",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/rotrics-mac%40rotricstest.iam.gserviceaccount.com"
+}

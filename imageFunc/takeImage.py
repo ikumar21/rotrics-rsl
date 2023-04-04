@@ -35,7 +35,7 @@ while True:
             num = int(fileName[fileName.index('/')+1:fileName.index('.')])
             maxNum = num if num>maxNum else maxNum
         img_name = "testImages/{}.jpg".format(maxNum+1)
-        undistortedImage = undistort.undistort(frame)
+        undistortedImage = undistort.undistort(frame,True)
         cv2.imwrite(img_name, undistortedImage)
         print("{} written!".format(img_name))
         img_counter += 1

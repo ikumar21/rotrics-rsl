@@ -7,12 +7,7 @@ import imutils
 
 DIM=(1920,1080)
 def recogn_main():
-    
     video.open(1,1920,1080)
-    # revogn = Color_block_recogn(red_hsv,feature_param,rgb_param)
-    # hsv = cv2.cvtColor(video.get_img(0), cv2.COLOR_BGR2HSV)
-    # print(len(hsv[5]))
-    
     while True:
         img = video.get_img(0)
         undistortedImg = undistort.undistort(img, showImage=False) 

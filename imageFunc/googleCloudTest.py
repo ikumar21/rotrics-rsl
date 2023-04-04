@@ -9,6 +9,7 @@ import glob
 #export GOOGLE_CLOUD_QUOTA_PROJECT=rotricstest
 #export GOOGLE_APPLICATION_CREDENTIALS="application_default_credentials.json"
 
+#Use demo to Test: https://cloud.google.com/vision#section-2
 
 def analyze_image_from_uri(imgName, feature_types):
     client = vision.ImageAnnotatorClient()
@@ -45,18 +46,18 @@ def print_objects(response: vision.AnnotateImageResponse):
             f"{obj.score:4.0%}",
             f"{obj.name:15}",
             f"{obj.mid:10}",
-            ",".join(f"({v.x:.1f},{v.y:.1f})" for v in nvertices),
+            ",".join(f"({v.x:.3f},{v.y:.3f})" for v in nvertices),
             sep=" | ",
         )
 
 
-features = [vision.Feature.Type.TEXT_DETECTION]
+features = [vision.Feature.Type.OBJECT_LOCALIZATION]
 
 
 
-images  = glob.glob('undistorted/*.jpg')
+images  = glob.glob('testImages/8.jpg')
 images.sort()
 for imgFile in images:
     response = analyze_image_from_uri(imgFile,features)
-    print_text(response)
+    print_objects(response)
 

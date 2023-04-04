@@ -121,7 +121,7 @@ def recogn_main():
     
     video.open(1,1920,1080)
     revogn = Color_block_recogn(red_hsv,feature_param,rgb_param)
-    hsv = cv2.cvtColor(video.get_img(0), cv2.COLOR_BGR2RGB)
+    hsv = cv2.cvtColor(video.get_img(0), cv2.COLOR_BGR2HSV)
     print(len(hsv[5]))
     
     while True:
@@ -129,7 +129,7 @@ def recogn_main():
         img,inRange_hsv = revogn.get_target_img(video.get_img(0),1)
         print(img)
         cv2.imshow('inRange_hsv', inRange_hsv)
-        #cv2.imshow('src_img', img)
+        cv2.imshow('src_img', img)
         k = cv2.waitKey(1)
         if k%256 == 27:
             # ESC pressed

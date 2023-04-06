@@ -2,9 +2,8 @@ import cv2
 import numpy as np
 import math
 import undistort
-import imutils
 from statistics import mean
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 
 img_path = "testImages/17.jpg"
@@ -13,7 +12,6 @@ imgHSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 dimensions = img.shape#Get dimensions of image to eliminate small contours
 
 def threshPic(undistortedImg):
-    undistortedImg = cv2.imread(img_path) 
     grayImg = cv2.cvtColor(undistortedImg, cv2.COLOR_BGR2GRAY)
     gs_img = cv2.GaussianBlur(grayImg, (5, 5), 0) 
     threshA = cv2.threshold(gs_img, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]

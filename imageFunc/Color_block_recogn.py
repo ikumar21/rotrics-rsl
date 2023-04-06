@@ -119,7 +119,7 @@ class Color_block_recogn():
 
 def recogn_main():
     
-    video.open(1,1920,1080)
+    video.open(0,1920,1080)
     revogn = Color_block_recogn(red_hsv,feature_param,rgb_param)
     hsv = cv2.cvtColor(video.get_img(0), cv2.COLOR_BGR2HSV)
     print(len(hsv[5]))

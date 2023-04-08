@@ -5,6 +5,8 @@ import undistort
 from Cam_dev import *
 from statistics import mean
 import time
+
+
 def correctHSV(hsvArray):
     #Returns tuple : (H,S,V) in correct format: 0-360degrees, 0-100%, 0-100%
     return round(hsvArray[0]*2.0), round(100.0*hsvArray[1]/255.0,1), round(100.0*hsvArray[2]/255.0,1)
@@ -17,16 +19,20 @@ def meanHSV(yPixelLocationsArr,xPixelLocationsArr, imgHSV):
     return [avgH,avgS,avgV]
 
 
-def pixelsInContour(contours,img):
+def pixelsInContour(contours,img, emptyImg):
     objectLocations = []
     # For each list of contour points...
     for i in range(len(contours)):
         # Create a mask image that contains the contour filled in
         cimg = np.zeros_like(img)
+
+        #cimg = np.full((1080, 1920), 0, dtype=np.int32)
+        
         cv2.drawContours(cimg, contours, i, color=255, thickness=-1)
         #cv2.imshow("object{}".format(i+1),cimg)
         # Access the image pixels and create a 1D numpy array then add to list
         pts = np.where(cimg == 255)
+        #cv2.drawContours(emptyImg, contours, i, color=0, thickness=-1)#reset
         objectLocations.append(pts)
     return objectLocations
 
@@ -69,10 +75,13 @@ def getDrawContour(imgThreshBGR,imgThreshGray):
 
 def recogn_main():
     global time
-    video.open(0,1920,1080)
-    
-    hsv = cv2.cvtColor(video.get_img(0), cv2.COLOR_BGR2HSV)
-    print(len(hsv[5]))
+    video.open(1,1920,1080)
+    img1 = video.get_img(0)
+    simpleImage = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+    hsvImg = cv2.cvtColor(img1, cv2.COLOR_BGR2HSV)
+    emptyImg = np.zeros_like(img1)
+
+    #print(len(hsvImg[5]))
     count = 0;
     times = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
     while True:
@@ -97,7 +106,7 @@ def recogn_main():
         times[3]+=time.time()-start_time;
 
         start_time = time.time()
-        objectLocations = pixelsInContour(contours,img)
+        objectLocations = pixelsInContour(contours,simpleImage,emptyImg)
         times[4]+=time.time()-start_time;
 
         start_time = time.time()

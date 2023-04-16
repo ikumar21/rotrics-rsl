@@ -80,18 +80,23 @@ def gcode_point_creation(coorArray,power):
     #Ex: [[0,0,True],[0,20,False], [10,20,True], [10,0,False/True]]
     #Will create two vertical lines at x = 0 and 10 with height of 20.
 
-    lines = [" "," "," "," "]
-    editHeaderAddNewLines(lines)#Add header 
     power = int(power) if (int(power) <256 and int(power)>0) else 100
     laserOnCommand = "M3 S"+str(power)+"\n"
-    lastLaserCommand = False;
+
+    coorArray[-1][2]=False;#Turn off Laser at last coordinate
+
+    lines = [" "," "," "," "]
+    editHeaderAddNewLines(lines)#Add header 
+    
+    
+    prevLaserCommand = False;#Start with laser off
     for coordinate in coorArray:
-        posCommand = "G"+str(int(lastLaserCommand))+ " X"+str(coordinate[0])+ " Y"+str(coordinate[1])+"\n"
-        lines.append(posCommand)
-        if(coordinate[2]!= lastLaserCommand):#Turn on/off laser if it isn't already
+        posCommand = "G"+str(int(prevLaserCommand))+ " X"+str(coordinate[0])+ " Y"+str(coordinate[1])+"\n"
+        lines.append(posCommand)#Go To coordinate
+        if(coordinate[2]!= prevLaserCommand):#Turn on/off laser if it isn't already
             laserCommand = laserOnCommand if coordinate[2] else "M5\n"
             lines.append(laserCommand)
-            lastLaserCommand=coordinate[2]; 
+            prevLaserCommand=coordinate[2]; 
     #for lines 
     with open("outputGcode.txt", "w") as f:
         f.writelines(lines)

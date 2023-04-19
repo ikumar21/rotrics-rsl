@@ -18,7 +18,7 @@ def editHeaderAddNewLines(lines):
     lines[0]="G0 Z0\n"
     lines[1]="M2000\n"
     lines[2]="M888 P1\nM888 P14 \nM5\n"#M5 turns off Laser
-    lines[3]="G0 F400\nG1 F400 \n"
+    lines[3]="G0 F800\nG1 F800 \n"
 
 
 def gcode_message_creation(message,specifiedLength,fixHeight,power, messageCenter):

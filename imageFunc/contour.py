@@ -5,7 +5,7 @@ import undistort
 from statistics import mean
 # import matplotlib.pyplot as plt
 
-img_path = "testImages/20.jpg"
+img_path = "testImages/17.jpg"
 
 
 def correctHSV(hsvArray):
@@ -45,7 +45,7 @@ def allHSV(yPixelLocationsArr,xPixelLocationsArr, imgHSV):#Returns all HSV and t
 
 
 
-def pixelsInContour(contours,img, emptyImg):
+def pixelsInContour(contours,img):
     objectLocations = []
     # For each list of contour points...
     for i in range(len(contours)):
@@ -75,6 +75,8 @@ def getDrawContour(imgThreshBGR,imgThreshGray):
     dimensions = imgThreshBGR.shape#Find pixel dimensions
     centerX =[]#x location of each object's center
     centerY = []#y location of each object's center
+    numberCount =0;
+    actualContours=[];
     for c in contours:
         x,y,w,h = cv2.boundingRect(c)#Get Width and Height of each object
         #Get Contour x/y end points
@@ -84,6 +86,8 @@ def getDrawContour(imgThreshBGR,imgThreshGray):
         # # plt.grid()
         # # plt.show()
         if(w*h<0.95*dimensions[0]*dimensions[1]and w*h>0.003*dimensions[0]*dimensions[1]):#Don't plot if too big or too small
+            actualContours.append(c)
+            numberCount+=1
             cv2.drawContours(imgThreshBGR, [c], -1, (0, 255, 0), 2)#Draw Contours in Green
             M = cv2.moments(c)
             if M["m00"] != 0:#Found Center, don't divide by 0
@@ -93,35 +97,16 @@ def getDrawContour(imgThreshBGR,imgThreshGray):
                 centerX.append(cX)
                 centerY.append(cY)
                 cv2.circle(imgThreshBGR, (cX, cY), 7, (0, 0, 255), -1)
-                cv2.putText(imgThreshBGR, "center", (cX - 20, cY - 20),
+                cv2.putText(imgThreshBGR, "center"+str(numberCount), (cX - 20, cY - 20),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
             # draw the contour and center of the shape on the image
 
-    return centerX,centerY, contours
+    return centerX,centerY, actualContours
 
 
-
-if __name__ == "__main__":
-    objectWhite= False;
-    imgBGR = cv2.imread(img_path)
-    imgHSV = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2HSV)
-    dimensions = imgBGR.shape#Get dimensions of image to eliminate small contours
-    simpleImage = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2GRAY)
-    emptyImg = np.zeros_like(imgBGR)
-
-    #imgBGR = undistort.undistort(img, showImage=False) 
-
-    thresholdPic = threshPic(imgBGR)
-    if(objectWhite):#If Objects are white, invert so it becomes black background/white objects
-        thresholdPic = cv2.bitwise_not(thresholdPic)#Invert Image
-
-    threshColor = cv2.cvtColor(thresholdPic,cv2.COLOR_GRAY2BGR)#Convert Gray image to BGR to have Markings in color
-
-    centerX,centerY, contours = getDrawContour(imgThreshBGR=threshColor,imgThreshGray=thresholdPic)
-    objectLocations = pixelsInContour(contours,simpleImage,emptyImg)
-
-
-    for object in objectLocations:
+def getObjectColor(contours,simpleImage,imgHSV):
+    objectLocations = pixelsInContour(contours,simpleImage)
+    for object in objectLocations:#Print hsv for objects
         #print(meanHSV(object[0],object[1], imgHSV))
         hsv, count = allHSV(object[0],object[1], imgHSV)
         print(hsv,count)
@@ -134,6 +119,52 @@ if __name__ == "__main__":
         # if(indexInHSV ==-1):
         #     print("OK")
 
+
+
+
+def getObjectShape(contours):
+    def shapeFromVertice(vertices, shapes, num):
+        prefix = "Object " +str(num)+": "
+        numVertices = len(vertices);
+        if(numVertices==3):
+            shapes.append(prefix+"Triangle")
+        elif(numVertices==4):
+            shapes.append(prefix+"Rectangle")
+        else:
+            shapes.append(prefix+str(numVertices)+" edges")
+    allShapes=[];
+    allVertices = [];
+    for num in range(len(contours)):
+        contour = contours[num];
+        perimeter = cv2.arcLength(contour, True)
+        vertices = cv2.approxPolyDP(contour, 0.04 * perimeter, True);
+        allVertices.append(vertices)
+        shapeFromVertice(vertices, allShapes, num+1)
+    return allShapes;
+
+
+
+if __name__ == "__main__":
+    objectWhite= True;
+    imgBGR = cv2.imread(img_path)
+    imgHSV = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2HSV)
+    dimensions = imgBGR.shape#Get dimensions of image to eliminate small contours
+    simpleImage = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2GRAY)
+
+    #imgBGR = undistort.undistort(img, showImage=False) 
+
+    thresholdPic = threshPic(imgBGR)
+    if(objectWhite):#If Objects are white, invert so it becomes black background/white objects
+        thresholdPic = cv2.bitwise_not(thresholdPic)#Invert Image
+
+    threshColor = cv2.cvtColor(thresholdPic,cv2.COLOR_GRAY2BGR)#Convert Gray image to BGR to have Markings in color
+
+    centerX,centerY, contours = getDrawContour(imgThreshBGR=threshColor,imgThreshGray=thresholdPic)
+    
+    print(centerX)
+    shapes = getObjectShape(contours)
+    print(shapes)
+    #getObjectColor(contours,simpleImage,imgHSV)
     cv2.imshow('thresh', threshColor)
     cv2.imshow('src_img', imgBGR)
 

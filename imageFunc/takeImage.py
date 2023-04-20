@@ -15,7 +15,7 @@ DIM=(1920,1080)
 K = np.load("cImages/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
 D = np.load("cImages/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
 
-
+ 
 while True:
     ret, frame = cam.read()
     if not ret:

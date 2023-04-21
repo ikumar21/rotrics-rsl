@@ -5,7 +5,7 @@ import undistort
 from statistics import mean
 # import matplotlib.pyplot as plt
 
-img_path = "testImages/17.jpg"
+img_path = "testImages/28.jpg"
 
 
 def correctHSV(hsvArray):
@@ -85,7 +85,7 @@ def getDrawContour(imgThreshBGR,imgThreshGray):
         # # plt.plot(xs,ys) 
         # # plt.grid()
         # # plt.show()
-        if(w*h<0.95*dimensions[0]*dimensions[1]and w*h>0.003*dimensions[0]*dimensions[1]):#Don't plot if too big or too small
+        if(w*h<0.95*dimensions[0]*dimensions[1]and w*h>0.001*dimensions[0]*dimensions[1]):#Don't plot if too big or too small
             actualContours.append(c)
             numberCount+=1
             cv2.drawContours(imgThreshBGR, [c], -1, (0, 255, 0), 2)#Draw Contours in Green
@@ -145,7 +145,7 @@ def getObjectShape(contours):
 
 
 if __name__ == "__main__":
-    objectWhite= True;
+    objectWhite= False;
     imgBGR = cv2.imread(img_path)
     imgHSV = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2HSV)
     dimensions = imgBGR.shape#Get dimensions of image to eliminate small contours

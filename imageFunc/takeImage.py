@@ -4,13 +4,19 @@ import os
 import glob
 import undistort
 
-cam = cv2.VideoCapture(1)
+cam = cv2.VideoCapture(0)#Change
 
+DIM=(1920,1080)
+
+
+
+cam.set(cv2.CAP_PROP_FRAME_WIDTH, DIM[0])
+cam.set(cv2.CAP_PROP_FRAME_HEIGHT, DIM[1])
 cv2.namedWindow("test")
 
 img_counter = 0
 
-DIM=(1920,1080)
+
 
 K = np.load("cImages/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
 D = np.load("cImages/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
@@ -32,7 +38,10 @@ while True:
         images = glob.glob('testImages/*.jpg');
         maxNum = 0;
         for fileName in images:
-            num = int(fileName[fileName.index('/')+1:fileName.index('.')])
+            try:#Macbook
+                num = int(fileName[fileName.index('/')+1:fileName.index('.')])
+            except:
+                num = int(fileName[fileName.index("\\")+1:fileName.index('.')])
             maxNum = num if num>maxNum else maxNum
         img_name = "testImages/{}.jpg".format(maxNum+1)
         undistortedImage = undistort.undistort(frame,True)

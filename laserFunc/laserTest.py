@@ -29,7 +29,10 @@ class Rectangle:
         self.center = [float(center[0]),float(center[1])];
         self.width = float(recWidth);
         self.height = float(recHeight);
-        self.stepSize = float(stepSize);
+        if stepSize is None:#Default-0.15 mm
+            self.stepSize = 0.15;
+        else:
+            self.stepSize = float(stepSize);
 
 
 class Triangle:#Equal Sides 
@@ -45,13 +48,16 @@ class Triangle:#Equal Sides
 
 def rectangleOutlineLaser(cArray, rec: Rectangle):
     #Input center: (x_center,y_center)
-    
-    cArray.append([rec.center[0]-rec.width/2.0,rec.center[1]-rec.height/2.0, True])
-    cArray.append([rec.center[0]-rec.width/2.0,rec.center[1]+rec.height/2.0, True])
-    cArray.append([rec.center[0]+rec.width/2.0,rec.center[1]+rec.height/2.0, True])
-    cArray.append([rec.center[0]+rec.width/2.0,rec.center[1]-rec.height/2.0, True])
+    newCoor=[];
+    newCoor.append([rec.center[0]-rec.width/2.0,rec.center[1]-rec.height/2.0, True])
+    newCoor.append([rec.center[0]-rec.width/2.0,rec.center[1]+rec.height/2.0, True])
+    newCoor.append([rec.center[0]+rec.width/2.0,rec.center[1]+rec.height/2.0, True])
+    newCoor.append([rec.center[0]+rec.width/2.0,rec.center[1]-rec.height/2.0, True])
     #Make sure to put False for last command to turn off laser:
-    cArray.append([rec.center[0]-rec.width/2.0,rec.center[1]-rec.height/2.0, False])
+    newCoor.append([rec.center[0]-rec.width/2.0,rec.center[1]-rec.height/2.0, False])
+
+    rotate_coordinates(newCoor,rec.angle,rec.center)#rotate coordinates to angle
+    for elem in newCoor: cArray.append(elem) #Add elements to laser array
 
 def lineLaser(cArray,point1,point2):
     #Input point1: [x_1,y_1]
@@ -95,8 +101,10 @@ def rectangleFillLaser(cArray:list,rect: Rectangle):
         alternateVar=not alternateVar;#laser moved ends, so now start at the new end
         yHeight-=rect.stepSize;#Go down a step level
     
-    rotate_coordinates(newCoor,rect.angle,rect.center)
-    for elem in newCoor: cArray.append(elem)
+    rotate_coordinates(newCoor,rect.angle,rect.center)#rotate coordinates to angle
+    for elem in newCoor: cArray.append(elem) #Add elements to laser array
+
+    rectangleOutlineLaser(cArray,rect)#Outline to give sharp edges/corners
 
     #Make sure to put False for last command to turn off laser:
     cArray[-1][2]=False
@@ -249,18 +257,52 @@ def arrangement1(coorArray,waferBoard:Wafer_Board):
 
 
 
+def arrangement2(coorArray,waferBoard:Wafer_Board):
+
+    #Create board:
+    createSquareWaferBoard(coorArray, waferBoard);
+
+    #Get all centers of each square in board:
+    squareCenters = centerSquares(waferBoard);#
+    
+    #Entries in Wafer
+
+
+    triangleFillLaser(coorArray,Triangle(squareCenters[0][0],10,0.2,30))
+    rectangleFillLaser(coorArray,Rectangle(squareCenters[0][2],8,8,0.2,45))
+    rectangleFillLaser(coorArray,Rectangle(squareCenters[0][4],8,5,0.2,30))
+
+    triangleFillLaser(coorArray,Triangle(squareCenters[1][1],8,0.2,0))
+    triangleFillLaser(coorArray,Triangle(squareCenters[1][3],7,0.2,0))
+    rectangleFillLaser(coorArray,Rectangle(squareCenters[1][5],5,5,0.2,30))
+    
+    triangleFillLaser(coorArray,Triangle(squareCenters[2][0],10,0.2,30))
+    rectangleFillLaser(coorArray,Rectangle(squareCenters[2][2],8,8,0.2,10))
+    rectangleFillLaser(coorArray,Rectangle(squareCenters[2][4],6,6,0.2,60))
+    
+    rectangleFillLaser(coorArray,Rectangle(squareCenters[3][0],9,7,0.25))
+
+    rectangleFillLaser(coorArray,Rectangle(squareCenters[4][1],10,3,0.2))
+    rectangleFillLaser(coorArray,Rectangle(squareCenters[4][2],6,3,0.2))
+    
+    rectangleFillLaser(coorArray,Rectangle(squareCenters[5][3],2,5,0.2))
+    triangleFillLaser(coorArray,Triangle(squareCenters[5][0],5,0.2,0))
+
+
+
 
 if __name__ == "__main__":
     coordinateArray = []
     waferBoard1 = Wafer_Board((0,300),80,4)
+    waferBoard2 = Wafer_Board((0,300),75,6)
 
-    #rectangleFillLaser(coordinateArray,Rectangle([0,0],10,10,0.2,45))
+
     #arrangement1(coordinateArray, waferBoard1);
-    tri1 = Triangle([20,10],10,0.1,30)
-    triangleFillLaser(coordinateArray,tri1)
-    tri2=Triangle([0,10],5,0.2,10)
-    triangleFillLaser(coordinateArray,tri2)
+    arrangement2(coordinateArray, waferBoard2);
+
+
+    
     lgs.gcode_point_creation(coordinateArray,200)#Create gcode with power level 200;
-    #runLaser();
+    runLaser();
 
 

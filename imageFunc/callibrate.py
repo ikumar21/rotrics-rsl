@@ -46,6 +46,8 @@ rms, _, _, _, _ = \
     )
 np.save("cImages/K", K, allow_pickle=True, fix_imports=True)
 np.save("cImages/D", D, allow_pickle=True, fix_imports=True)
+cv2.fisheye.est
+
 
 print("Found " + str(N_OK) + " valid images for calibration")
 print("DIM=" + str(_img_shape[::-1]))

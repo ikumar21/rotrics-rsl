@@ -3,11 +3,17 @@ from google.cloud import vision
 import io
 import glob
 
+
+#Terminal (Download Library): pip3 install --upgrade google-cloud-vision
+
 #Macbook: Enter in Terminal
 #export PROJECT_ID=rotricstest
 #export GOOGLE_CLOUD_PROJECT=rotricstest
 #export GOOGLE_CLOUD_QUOTA_PROJECT=rotricstest
 #export GOOGLE_APPLICATION_CREDENTIALS="application_default_credentials.json"
+
+#Windows Terminal: Everything above(replace export with set)
+#also change last Command: set GOOGLE_APPLICATION_CREDENTIALS=C:\Users\rsl\Desktop\rotrics-rsl\imageFunc\application_default_credentials.json
 
 #Use demo to Test: https://cloud.google.com/vision#section-2
 
@@ -51,13 +57,33 @@ def print_objects(response: vision.AnnotateImageResponse):
         )
 
 
-features = [vision.Feature.Type.OBJECT_LOCALIZATION]
+features = [vision.Feature.Type.TEXT_DETECTION]
 
 
 
-images  = glob.glob('testImages/8.jpg')
+def getTextImage(image):
+    features = [vision.Feature.Type.TEXT_DETECTION]
+    response = analyze_image_from_uri(image,features)
+    firstEntry = True;
+    allWords ="";
+    wordList = []
+    for annotation in response.text_annotations:
+        if(firstEntry):
+            allWords+=annotation.description;
+            firstEntry=False;
+        else:
+            wordList.append(annotation.description)
+
+    return allWords, wordList;
+
+
+
+images  = glob.glob('testImages/3.jpg')
 images.sort()
-for imgFile in images:
-    response = analyze_image_from_uri(imgFile,features)
-    print_objects(response)
-
+for image in images:
+    
+    sentence, words =getTextImage(image)
+    print(sentence)
+    print("="*80)
+    for word in words:
+        print(word)

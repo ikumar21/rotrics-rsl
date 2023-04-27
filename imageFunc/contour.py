@@ -5,7 +5,7 @@ import undistort
 from statistics import mean
 # import matplotlib.pyplot as plt
 
-img_path = "testImages/43.jpg"
+img_path = "testImages/33.jpg"
 
 
 def correctHSV(hsvArray):
@@ -161,7 +161,7 @@ if __name__ == "__main__":
 
     centerX,centerY, contours = getDrawContour(imgThreshBGR=threshColor,imgThreshGray=thresholdPic)
     
-    print(centerX)
+    print(centerX,centerY)
     shapes = getObjectShape(contours)
     print(shapes)
     #getObjectColor(contours,simpleImage,imgHSV)

@@ -5,7 +5,7 @@ import undistort
 from statistics import mean
 # import matplotlib.pyplot as plt
 
-img_path = "testImages/33.jpg"
+img_path = "testImages/35.jpg"
 
 
 def correctHSV(hsvArray):
@@ -85,13 +85,13 @@ def getDrawContour(imgThreshBGR,imgThreshGray):
         # # plt.plot(xs,ys) 
         # # plt.grid()
         # # plt.show()
-        if(w*h<0.95*dimensions[0]*dimensions[1]and w*h>0.00001*dimensions[0]*dimensions[1]):#Don't plot if too big or too small
+        if(w*h<0.95*dimensions[0]*dimensions[1]and w*h>0.0003*dimensions[0]*dimensions[1]):#Don't plot if too big or too small
             actualContours.append(c)
             numberCount+=1
             cv2.drawContours(imgThreshBGR, [c], -1, (0, 255, 0), 2)#Draw Contours in Green
             M = cv2.moments(c)
             if M["m00"] != 0:#Found Center, don't divide by 0
-                print("FOUND, Area:",w*h)
+                # print("FOUND, Area:",w*h)
                 cX = int(M["m10"] / M["m00"])
                 cY = int(M["m01"] / M["m00"])
                 centerX.append(cX)
@@ -143,6 +143,23 @@ def getObjectShape(contours):
     return allShapes;
 
 
+
+def getObjectLocation(im_path):
+    objectWhite= False;
+    imgBGR = cv2.imread(im_path)
+    imgHSV = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2HSV)
+    dimensions = imgBGR.shape#Get dimensions of image to eliminate small contours
+    simpleImage = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2GRAY)
+
+    #imgBGR = undistort.undistort(img, showImage=False) 
+
+    thresholdPic = threshPic(imgBGR)
+    if(objectWhite):#If Objects are white, invert so it becomes black background/white objects
+        thresholdPic = cv2.bitwise_not(thresholdPic)#Invert Image
+
+    threshColor = cv2.cvtColor(thresholdPic,cv2.COLOR_GRAY2BGR)#Convert Gray image to BGR to have Markings in color
+    centerX,centerY, contours = getDrawContour(imgThreshBGR=threshColor,imgThreshGray=thresholdPic)
+    return centerX,centerY
 
 if __name__ == "__main__":
     objectWhite= False;

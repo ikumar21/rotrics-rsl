@@ -52,3 +52,10 @@ print("Found " + str(N_OK) + " valid images for calibration")
 print("DIM=" + str(_img_shape[::-1]))
 print("K=np.array(" + str(K.tolist()) + ")")
 print("D=np.array(" + str(D.tolist()) + ")")
+
+
+newK = np.zeros((3, 3))
+cv2.fisheye.estimateNewCameraMatrixForUndistortRectify(K, D,
+    gray.shape[::-1], newK,balance =1)
+
+print("newK=np.array(" + str(newK.tolist()) + ")")

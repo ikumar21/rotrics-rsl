@@ -207,13 +207,13 @@ class Dexarm:
         """
         Pickup an object
         """
-        self._send_cmd("M1000\r")
+        self._send_cmd("M1001\r")
 
     def air_picker_place(self):
         """
         Release an object
         """
-        self._send_cmd("M1001\r")
+        self._send_cmd("M1000\r")
 
     def air_picker_nature(self):
         """

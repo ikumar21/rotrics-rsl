@@ -1,7 +1,7 @@
 #Simulate G code: https://nraynaud.github.io/webgcode/
 import sys
  
-# adding Folder_2 to the system path
+# adding folder to the system path
 sys.path.insert(0, '../')
 from pydexarm import Dexarm
 import time

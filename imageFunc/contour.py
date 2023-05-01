@@ -215,9 +215,9 @@ def runStuff(imgBGR, whiteBackground):
 
 
 
-def getObjectLocation(im_path):
+def getObjectLocation(imgBGR):
     objectWhite= False;
-    imgBGR = cv2.imread(im_path)
+    #imgBGR = cv2.imread(im_path)
     imgHSV = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2HSV)
     dimensions = imgBGR.shape#Get dimensions of image to eliminate small contours
     simpleImage = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2GRAY)

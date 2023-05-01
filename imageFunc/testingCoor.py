@@ -4,11 +4,10 @@ import math
 import undistort
 from statistics import mean
 import contour 
-from sympy import symbols, Eq, solve, atan
 from scipy.optimize import fsolve
 import glob
 
-def func(x):
+def funcRealWorld(x):
      global u_adjusted, v_adjusted,k1,k2,k3,k4
      return [x[0] -np.arctan(x[2]),
              x[1]-x[0]*(1+k1*x[0]**2+k2*x[0]**4+k3*x[0]**6+k4*x[0]**8),
@@ -79,8 +78,8 @@ for fileName in images:#Get image num
         centerX, centerY = contour.getObjectLocation(fileName)
         u_adjusted = (centerX[0]*1.0-cx)/fx
         v_adjusted = (centerY[0]*1.0-cy)/fy
-        sol = fsolve(func, [1, 1,1,1,1])
-        #print(sol)
+        sol = fsolve(funcRealWorld, [1, 1,1,1,1])
+        print(np.isclose(funcRealWorld(sol), [0.0, 0.0]))
         z_c = z_c0-z_object+robotPosition[imageIndex][2]#z Distance from object to camera
         x_c = sol[3]*z_c;
         y_c = sol[4]*z_c;

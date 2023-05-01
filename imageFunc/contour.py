@@ -5,7 +5,7 @@ import undistort
 from statistics import mean
 # import matplotlib.pyplot as plt
 
-img_path = "testImages/35.jpg"
+img_path = "testImages/41.jpg"
 
 
 def correctHSV(hsvArray):
@@ -79,12 +79,6 @@ def getDrawContour(imgThreshBGR,imgThreshGray):
     actualContours=[];
     for c in contours:
         x,y,w,h = cv2.boundingRect(c)#Get Width and Height of each object
-        #Get Contour x/y end points
-        # xs = [v[0][0] for v in c] 
-        # ys = [dimensions[0]-v[0][1] for v in c]
-        # # plt.plot(xs,ys) 
-        # # plt.grid()
-        # # plt.show()
         if(w*h<0.95*dimensions[0]*dimensions[1]and w*h>0.0003*dimensions[0]*dimensions[1]):#Don't plot if too big or too small
             actualContours.append(c)
             numberCount+=1
@@ -121,6 +115,28 @@ def getObjectColor(contours,simpleImage,imgHSV):
 
 
 
+def colorRecog(hsv):#Input hsv value -> [H,S,V]
+    #output: color in string all capitilized
+    hVal = hsv[0]
+    if(0<=hVal<=30 or 330<=hVal<=360):
+        return "RED"
+    elif(30<=hVal<=50):
+        return "ORANGE"
+    elif(50<=hVal<=90):
+        return "YELLOW"
+    elif(90<=hVal<=150):
+        return "GREEN"
+    elif(150<=hVal<=210):
+        return "CYAN"
+    elif(210<=hVal<=270):
+        return "BLUE"
+    elif(270<=hVal<=330):
+        return "MAGENTA"
+    else:
+        return "ERROR"
+    
+
+
 
 def getObjectShape(contours):
     def shapeFromVertice(vertices, shapes, num):
@@ -141,6 +157,61 @@ def getObjectShape(contours):
         allVertices.append(vertices)
         shapeFromVertice(vertices, allShapes, num+1)
     return allShapes;
+
+def cropImg(contours, img):
+    for contour in contours:
+        grayImg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        mask = np.zeros_like(grayImg)
+        cv2.drawContours(mask, contours, 0, color=255, thickness=-1)
+        perimeter = cv2.arcLength(contour, True)
+        vertices = cv2.approxPolyDP(contour, 0.04 * perimeter, True);
+        minY = min([elem[0][1] for elem in vertices])
+        maxY = max([elem[0][1] for elem in vertices])
+        maxX = max([elem[0][0] for elem in vertices])
+        minX = min([elem[0][0] for elem in vertices])
+        crop_img = img[minY:maxY, minX:maxX].copy()
+        mask = mask[minY:maxY, minX:maxX];
+        grayImg = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
+        pts = np.where(mask != 255)
+        yPixelLocationsArr,xPixelLocationsArr = pts[0],pts[1]
+        for indexPixel in range(len(yPixelLocationsArr)):
+            crop_img[yPixelLocationsArr[indexPixel]][xPixelLocationsArr[indexPixel]]=(128,151,166);
+        cv2.imshow("New Image", crop_img);
+        while True:
+            k = cv2.waitKey(1)
+            if k%256 == 27:
+                # ESC pressed
+                print("Escape hit, closing...")
+                break
+        return crop_img
+    
+
+
+
+
+def runStuff(imgBGR, whiteBackground):
+    imgHSV = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2HSV)
+    dimensions = imgBGR.shape#Get dimensions of image to eliminate small contours
+    thresholdPic = threshPic(imgBGR)
+    if(whiteBackground==True):#If Objects are white, invert so it becomes black background/white objects
+        thresholdPic = cv2.bitwise_not(thresholdPic)#Invert Image
+
+    threshColor = cv2.cvtColor(thresholdPic,cv2.COLOR_GRAY2BGR)#Convert Gray image to BGR to have Markings in color
+
+    centerX,centerY, contours = getDrawContour(imgThreshBGR=threshColor,imgThreshGray=thresholdPic)
+    
+    print(centerX,centerY)
+    shapes = getObjectShape(contours)
+    print(shapes)
+    cv2.imshow('thresh', threshColor)
+    cv2.imshow('src_img', imgBGR)
+
+    while True:
+        k = cv2.waitKey(1)
+        if k%256 == 27:
+            # ESC pressed
+            print("Escape hit, closing...")
+            break
 
 
 
@@ -181,6 +252,13 @@ if __name__ == "__main__":
     print(centerX,centerY)
     shapes = getObjectShape(contours)
     print(shapes)
+    runStuff(cropImg(contours, imgBGR),True)
+
+
+
+
+
+
     #getObjectColor(contours,simpleImage,imgHSV)
     cv2.imshow('thresh', threshColor)
     cv2.imshow('src_img', imgBGR)

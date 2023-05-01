@@ -69,6 +69,7 @@ robotImgPosition(robotPosition)
 
 imageIndex = 0;
 images = glob.glob('testImages/*.jpg');
+images.sort()
 for fileName in images:#Get image num
     try:#Macbook
         num = int(fileName[fileName.index('/')+1:fileName.index('.')])
@@ -85,7 +86,7 @@ for fileName in images:#Get image num
         y_c = sol[4]*z_c;
 
         x_e = x_c*1.0;
-        y_e = -y_c*1.0-61.0+300.0;#y axis is flipped and translated upwards 
+        y_e = -y_c*1.0-61.0;#y axis is flipped and translated upwards 
         z_e = 0.0;#dummy z
 
         P_e = np.array([[x_e],[y_e], [z_e], [1]])
@@ -96,8 +97,9 @@ for fileName in images:#Get image num
             [0.0, 0.0, 0.0, 1.0]])
         
         #print(T_r_e)
+        #print(P_e)
         print(fileName)
-        P_r = T_r_e * P_e;
+        P_r = np.matmul(T_r_e,P_e);
         print(P_r[0],P_r[1])
         print("="*80)
         imageIndex+=1;
@@ -106,48 +108,3 @@ for fileName in images:#Get image num
 
 
 
-
-
-# centerX, centerY = contour.getObjectLocation("testImages/29.jpg")
-# u_adjusted = (centerX[0]*1.0-cx)/fx
-# v_adjusted = (centerY[0]*1.0-cy)/fy
-# print(centerX[0],centerY[0])
-# sol = fsolve(func, [1, 1,1,1,1])
-# print(sol)
-# x_c = sol[3]*z_c;
-# y_c = sol[4]*z_c;
-# print(x_c,y_c)
-# print(np.isclose(func(sol), [0.0, 0.0,0.0,0.0,0.0]))
-# print("="*80)
-
-
-
-# centerX, centerY = contour.getObjectLocation("testImages/32.jpg")
-# u_adjusted = (centerX[0]*1.0-cx)/fx
-# v_adjusted = (centerY[0]*1.0-cy)/fy
-# print(centerX[0],centerY[0])
-# sol = fsolve(func, [1, 1,1,1,1])
-# print(sol)
-# x_c = sol[3]*z_c;
-# y_c = sol[4]*z_c;
-# print(x_c,y_c)
-
-
-
-
-
-
-
-# # exprTheta = theta-atan(r)
-# exprFisheyeDistortion = theta_d-theta*(1+k1*theta**2+k2*theta**4+k3*theta**6+k4*theta**8)
-# exprR2 = r**2-a**2-b**2;
-
-
-
-
-# u=centerX[0]
-# v = centerY[0]
-#theta_d, theta, a ,b,r = symbols('theta_d, theta, a, b,r')
-# exprU = (u*1.0-cx)/fx-theta_d*a/r;
-# exprV = (v*1.0-cy)/fy-theta_d*b/r;
-# #sol = solve((exprTheta,exprFisheyeDistortion,exprR2,exprU,exprV), (theta,a,b,theta_d,r))

@@ -1,5 +1,9 @@
+#Most code in file from Rotrics Company
+
 import serial
 import re
+import time
+
 
 class Dexarm:
     """ Python class for Dexarm
@@ -260,6 +264,27 @@ class Dexarm:
         Stop the belt
         """
         self._send_cmd("M2013\r")
+    def conveyor_belt_move(self,  position, speed = 0):
+            if(position>0):
+                self._send_cmd("M2012 F" + str(speed) + 'D0\r')#Go forward
+            else:
+                self._send_cmd("M2012 F" + str(speed) + 'D1\r')#Go backward
+            
+            now_ns = time.time_ns() # Time in nanoseconds
+            start_time = int(now_ns / 1000000) #Time in Milliseconds
+            runForMS = round((60.0/speed)*position*1000.0)#How many ms to run for to get right position
+
+            while(True):
+                now_ns = time.time_ns() # Time in nanoseconds
+                now_ms = int(now_ns / 1000000)
+                timeElapsed = now_ms-start_time;
+                if(runForMS<timeElapsed):
+                    break;
+            
+            self._send_cmd("M2013\r")#Stop
+
+
+
 
     """Sliding Rail"""
     def sliding_rail_init(self):
@@ -267,6 +292,11 @@ class Dexarm:
         Sliding rail init.
         """
         self._send_cmd("M2005\r")
+
+    
+
+
+
 
     def close(self):
         """

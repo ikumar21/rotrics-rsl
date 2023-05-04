@@ -5,7 +5,7 @@ import undistort
 from statistics import mean
 # import matplotlib.pyplot as plt
 
-img_path = "testImages/41.jpg"
+img_path = "testImages/47.jpg"
 
 
 def correctHSV(hsvArray):
@@ -79,7 +79,7 @@ def getDrawContour(imgThreshBGR,imgThreshGray):
     actualContours=[];
     for c in contours:
         x,y,w,h = cv2.boundingRect(c)#Get Width and Height of each object
-        if(w*h<0.95*dimensions[0]*dimensions[1]and w*h>0.0003*dimensions[0]*dimensions[1]):#Don't plot if too big or too small
+        if(w*h<0.95*dimensions[0]*dimensions[1]and w*h>0.003*dimensions[0]*dimensions[1]):#Don't plot if too big or too small
             actualContours.append(c)
             numberCount+=1
             cv2.drawContours(imgThreshBGR, [c], -1, (0, 255, 0), 2)#Draw Contours in Green
@@ -118,6 +118,15 @@ def getObjectColor(contours,simpleImage,imgHSV):
 def colorRecog(hsv):#Input hsv value -> [H,S,V]
     #output: color in string all capitilized
     hVal = hsv[0]
+    sVal = hsv[1]
+    vVal = hsv[2]
+    if(sVal<10):#Could be white, Gray or white
+        if(vVal >=90):
+            return "WHITE"
+        elif(vVal<=6):
+            return "BLACK"
+        else:
+            return "GRAY"
     if(0<=hVal<=30 or 330<=hVal<=360):
         return "RED"
     elif(30<=hVal<=50):
@@ -217,7 +226,7 @@ def runStuff(imgBGR, whiteBackground):
 
 def getObjectLocation(imgBGR):
     objectWhite= False;
-    #imgBGR = cv2.imread(im_path)
+    imgBGR = cv2.imread(imgBGR)
     imgHSV = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2HSV)
     dimensions = imgBGR.shape#Get dimensions of image to eliminate small contours
     simpleImage = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2GRAY)
@@ -233,7 +242,7 @@ def getObjectLocation(imgBGR):
     return centerX,centerY
 
 if __name__ == "__main__":
-    objectWhite= False;
+    objectWhite= True;
     imgBGR = cv2.imread(img_path)
     imgHSV = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2HSV)
     dimensions = imgBGR.shape#Get dimensions of image to eliminate small contours
@@ -252,7 +261,18 @@ if __name__ == "__main__":
     print(centerX,centerY)
     shapes = getObjectShape(contours)
     print(shapes)
-    runStuff(cropImg(contours, imgBGR),True)
+
+    objects = pixelsInContour(contours,imgBGR)
+    allObjectsHSV = [];
+    for object in objects:
+        objectHSV = meanHSV(object[0],object[1],imgHSV);
+        allObjectsHSV.append(objectHSV)
+        print(correctHSV(objectHSV),colorRecog(correctHSV(objectHSV)))
+
+
+
+
+    #runStuff(cropImg(contours, imgBGR),True)
 
 
 

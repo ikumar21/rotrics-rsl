@@ -3,14 +3,14 @@ from google.cloud import vision
 import io
 import glob
 import cv2
-
+import time;
 #Terminal (Download Library): pip3 install --upgrade google-cloud-vision
 
 #Macbook: Enter in Terminal
-#export PROJECT_ID=rotricstest
-#export GOOGLE_CLOUD_PROJECT=rotricstest
-#export GOOGLE_CLOUD_QUOTA_PROJECT=rotricstest
-#export GOOGLE_APPLICATION_CREDENTIALS=application_default_credentials.json
+# export PROJECT_ID=rotricstest
+# export GOOGLE_CLOUD_PROJECT=rotricstest
+# export GOOGLE_CLOUD_QUOTA_PROJECT=rotricstest
+# export GOOGLE_APPLICATION_CREDENTIALS=application_default_credentials.json
 
 #Windows Terminal: Everything above(replace export with set)
 #also change last Command: set GOOGLE_APPLICATION_CREDENTIALS=C:\Users\rsl\Desktop\rotrics-rsl\imageFunc\application_default_credentials.json
@@ -18,11 +18,11 @@ import cv2
 #Use demo to Test: https://cloud.google.com/vision#section-2
 
 def analyze_image_from_uri(imgName, feature_types):
-    client = vision.ImageAnnotatorClient()
+    #client = vision.ImageAnnotatorClient()
     content = io.open(imgName, 'rb').read()
     image = vision.Image(content=content)
-    features = [vision.Feature(type_=feature_type) for feature_type in feature_types]
-    request = vision.AnnotateImageRequest(image=image, features=features)
+    #features = [vision.Feature(type_=feature_type) for feature_type in feature_types]
+    request = vision.AnnotateImageRequest(image=image, features=[vision.Feature(type_=feature_types[0])])
     response = client.annotate_image(request=request)
     return response
 
@@ -71,6 +71,7 @@ def getTextImage(image):
     allVertices = [];
     centerPoints = []
     for annotation in response.text_annotations:
+        print(annotation.description, annotation.confidence)
         if(firstEntry):
             allWords+=annotation.description;
             firstEntry=False;
@@ -88,13 +89,17 @@ def getTextImage(image):
 
     return allWords, wordList,allVertices, centerPoints;
 
+client = vision.ImageAnnotatorClient()
 
-
-images  = glob.glob('testImages/40.jpg')
+images  = glob.glob('googleTest/3.jpg')
 images.sort()
 for image in images:
-    
+    now_ns = time.time_ns() # Time in nanoseconds
+    start_time = int(now_ns / 1000000) #Time in Milliseconds
     sentence, words, allVertices, centerPoints =getTextImage(image)
+    now_ns = time.time_ns() # Time in nanoseconds
+    StopTime = int(now_ns / 1000000) #Time in Milliseconds
+    print(StopTime-start_time)
     print(sentence)
     print("="*80)
     for word in words:
@@ -106,11 +111,11 @@ for image in images:
         index = 0;
         for vertice in verticesText:
             index = 0 if index == len(verticesText) -1 else index+1
-            cv2.line(img, vertice, verticesText[index], (0,255,0), 10) 
+            cv2.line(img, vertice, verticesText[index], (0,255,0), 2) 
             print(vertice)
         print("="*80)
     for centerPoint in centerPoints:
-        cv2.circle(img, (int(centerPoint[0]),int(centerPoint[1])), radius=5, color=(0, 255, 0), thickness=-1)
+        cv2.circle(img, (int(centerPoint[0]),int(centerPoint[1])), radius=3, color=(0, 255, 0), thickness=-1)
     cv2.imshow("text location", img)
     while True:
         k = cv2.waitKey(1)

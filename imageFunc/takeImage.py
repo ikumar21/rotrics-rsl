@@ -10,19 +10,20 @@ cam = cv2.VideoCapture(0)#Change
 DIM=(1920,1080)
 
 
-
 cam.set(cv2.CAP_PROP_FRAME_WIDTH, DIM[0])
 cam.set(cv2.CAP_PROP_FRAME_HEIGHT, DIM[1])
-cv2.namedWindow("test")
-
-img_counter = 0
 
 
 
 K = np.load("cImages/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
 D = np.load("cImages/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
 
- 
+img_counter = 0
+cv2.namedWindow("test")
+
+
+
+
 while True:
     ret, frame = cam.read()
     if not ret:

@@ -6,7 +6,7 @@ from statistics import mean
 import contour 
 from scipy.optimize import fsolve
 import glob
-
+import time
 def funcRealWorld(x):
      global u_adjusted, v_adjusted,k1,k2,k3,k4
      return [x[0] -np.arctan(x[2]),
@@ -59,13 +59,12 @@ def robotImgPosition(rPosition):
 
 
 
-
+totalTime =0;
 
 
 
 robotPosition = []
 robotImgPosition(robotPosition)
-
 imageIndex = 0;
 images = glob.glob('testImages/*.jpg');
 images.sort()
@@ -76,10 +75,13 @@ for fileName in images:#Get image num
         num = int(fileName[fileName.index("\\")+1:fileName.index('.')])
     if(num>=29 and num<=40 and num != 35):#Test on Images 29-40; 35 image won't work
         centerX, centerY = contour.getObjectLocation(fileName)
+        start_time = int(time.time_ns()/ 100000) #Time in Milliseconds
+
+
         u_adjusted = (centerX[0]*1.0-cx)/fx
         v_adjusted = (centerY[0]*1.0-cy)/fy
         sol = fsolve(funcRealWorld, [1, 1,1,1,1])
-        print(np.isclose(funcRealWorld(sol), [0.0, 0.0]))
+        print(np.isclose(funcRealWorld(sol), [0.0, 0.0,0.0,0.0,0.0]))
         z_c = z_c0-z_object+robotPosition[imageIndex][2]#z Distance from object to camera
         x_c = sol[3]*z_c;
         y_c = sol[4]*z_c;
@@ -102,8 +104,10 @@ for fileName in images:#Get image num
         print(P_r[0],P_r[1])
         print("="*80)
         imageIndex+=1;
+        stopTime = int(time.time_ns()/ 100000) #Time in Milliseconds
+        totalTime+=stopTime-start_time;
 
 
-
+print(totalTime)
 
 

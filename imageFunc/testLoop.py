@@ -1,3 +1,5 @@
+#Every Function implemented
+
 import cv2
 import numpy as np
 import math

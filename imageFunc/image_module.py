@@ -1,50 +1,165 @@
 import numpy as np
 import os
 import glob
-import contour
 import cv2
 from google.cloud import vision
 import io
-
+from statistics import mean
+from scipy.optimize import fsolve
+import math
 #Use demo to Test: https://cloud.google.com/vision#section-2
 
 #Google Cloud:
 client = vision.ImageAnnotatorClient()
 
+#Initializes constants used in module
+def InitializeConstants():
+    global K,D, FISHEYE_K1,FISHEYE_K2,FISHEYE_K3,FISHEYE_K4,FISHEYE_FX,FISHEYE_FY,FISHEYE_CX,FISHEYE_CY;
+    global MAP_1,MAP_2, CAMERA_SMALL_MATRIX, DIST_COEFF_SMALL, SIMPLE_FAST_COLOR, COMPLEX_FAST_COLOR, SIMPLE_SLOW_COLOR  
+    global COMPLEX_SLOW_COLOR, Z_DISTANCE_TABLE_CAMERA, BIG_CAMERA, SMALL_CAMERA 
+    
+    #1920*1080 camera:
+    #Import Undistortion constants
+    K = np.load("cImages/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+    D = np.load("cImages/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+    FISHEYE_K1 = D[0][0];
+    FISHEYE_K2 = D[1][0];
+    FISHEYE_K3 = D[2][0];
+    FISHEYE_K4 = D[3][0];
+    FISHEYE_FX = K[0][0]
+    FISHEYE_FY = K[1][1]
+    FISHEYE_CX = K[0][2]
+    FISHEYE_CY = K[1][2]
 
-#1920*1080 camera:
-#Import Undistortion constants
-K = np.load("cImages/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
-D = np.load("cImages/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
-map1, map2 = cv2.fisheye.initUndistortRectifyMap(K, D, np.eye(3), K, (1920,1080), cv2.CV_16SC2)
+    MAP_1, MAP_2 = cv2.fisheye.initUndistortRectifyMap(K, D, np.eye(3), K, (1920,1080), cv2.CV_16SC2)
 
 
-# 640*480 Small Camera:
-cameraMatrixSmall = np.array([
-                        [ 7.9641507015667764e+02, 0., 3.1577913194699374e+02], 
-                        [0.,7.9661307355876215e+02, 2.1453452136833957e+02], 
-                        [0., 0., 1. ]
-                        ])
+    # 640*480 Small Camera:
+    CAMERA_SMALL_MATRIX = np.array([
+                            [ 7.9641507015667764e+02, 0., 3.1577913194699374e+02], 
+                            [0.,7.9661307355876215e+02, 2.1453452136833957e+02], 
+                            [0., 0., 1. ]
+                            ])
 
-distCoeffsSmall = np.array([
-                    [ -1.1949335317713690e+00,
-                    1.8078010700662486e+00,
-                    4.9410258870084744e-03, 
-                    2.8036176641915598e-03,
-                    -2.0575845684235938e+00]
-                    ])  
+    DIST_COEFF_SMALL = np.array([
+                        [ -1.1949335317713690e+00,
+                        1.8078010700662486e+00,
+                        4.9410258870084744e-03, 
+                        2.8036176641915598e-03,
+                        -2.0575845684235938e+00]
+                        ])  
+
+
+    #Constants Used:
+    SIMPLE_FAST_COLOR  = 0;
+    COMPLEX_FAST_COLOR = 1;
+    SIMPLE_SLOW_COLOR  = 2;
+    COMPLEX_SLOW_COLOR = 3;
+    BIG_CAMERA = 0;#1920 by 1080 pixels
+    SMALL_CAMERA = 1;#640 by 480 pixels
+
+    Z_DISTANCE_TABLE_CAMERA = 78;
+InitializeConstants();
+
+#Equations used to calculate real world coordinates based on fisheye distortion:
+def FisheyeEquations(x, u_adjusted,v_adjusted ):
+     k1,k2,k3,k4 = FISHEYE_K1, FISHEYE_K2, FISHEYE_K3, FISHEYE_K4 
+     return [x[0] -np.arctan(x[2]),
+             x[1]-x[0]*(1+k1*x[0]**2+k2*x[0]**4+k3*x[0]**6+k4*x[0]**8),
+             x[2]**2-x[3]**2-x[4]**2,
+             u_adjusted-x[1]*x[3]/x[2],
+             v_adjusted-x[1]*x[4]/x[2]]
+
+def RealWorldCoordinates(centerLocation, heightObject, robotPosition):
+    #Returns real world coordinates from pixel location
+    #Input: center location in pixels: [x,y]; height of object (mm), position of rotrics arm: [x,y,z]
+    #Output: returns real world coordinates in mm [x,y]
+
+    #Add check to see if within image dimensions
+    centerX, centerY = centerLocation[0], centerLocation[1]
+    u_adjusted = (centerX*1.0-FISHEYE_CX)/FISHEYE_FX
+    v_adjusted = (centerY*1.0-FISHEYE_CY)/FISHEYE_FY
+    sol = fsolve(FisheyeEquations, [1, 1,1,1,1], args=(u_adjusted, v_adjusted))
+    print(np.isclose(FisheyeEquations(sol, u_adjusted, v_adjusted), [0.0, 0.0,0.0,0.0,0.0]))
+    
+    
+    #z Distance from object to camera:
+    z_c = Z_DISTANCE_TABLE_CAMERA-heightObject+robotPosition[2]
+
+    x_c = sol[3]*z_c;
+    y_c = sol[4]*z_c;
+
+    x_e = x_c*1.0;
+    y_e = -y_c*1.0-61.0;#y axis is flipped and translated upwards 
+    z_e = 0.0;#dummy z
+
+    P_e = np.array([[x_e],[y_e], [z_e], [1]])
+    theta = np.arcsin(robotPosition[0]/math.sqrt(robotPosition[0]**2+robotPosition[1]**2))        
+    T_r_e=np.array([[np.cos(theta), np.sin(theta), 0.0,robotPosition[0]*1.0], 
+        [-np.sin(theta), np.cos(theta), 0.0,robotPosition[1]*1.0], 
+        [0.0, 0.0, 1.0, robotPosition[2]*1.0],
+        [0.0, 0.0, 0.0, 1.0]])
+    
+    #print(T_r_e)
+    #print(P_e)
+    P_r = np.matmul(T_r_e,P_e);#Multiply homogeneous transform by position in end-effector frame to get position in robot/global frame
+    print(P_r[0],P_r[1])
+    #print("="*80)
+    return P_r[0][0], P_r[1][0]
+
+def CorrectHSV(hsvArray):
+    #Returns tuple : (H,S,V) in correct format: 0-360degrees, 0-100%, 0-100%
+    return round(hsvArray[0]*2.0), round(100.0*hsvArray[1]/255.0,1), round(100.0*hsvArray[2]/255.0,1)
+def ColorRecog(hsv):
+    #Input hsv value -> [H,S,V]
+    #output: color in string all capitilized
+    hVal = hsv[0]
+    sVal = hsv[1]
+    vVal = hsv[2]
+    if(sVal<10):#Could be white, Gray or white
+        if(vVal >=90):
+            return "WHITE"
+        elif(vVal<=6):
+            return "BLACK"
+        else:
+            return "GRAY"
+    if(0<=hVal<=30 or 330<=hVal<=360):
+        return "RED"
+    elif(30<=hVal<=50):
+        return "ORANGE"
+    elif(50<=hVal<=90):
+        return "YELLOW"
+    elif(90<=hVal<=150):
+        return "GREEN"
+    elif(150<=hVal<=210):
+        return "CYAN"
+    elif(210<=hVal<=270):
+        return "BLUE"
+    elif(270<=hVal<=330):
+        return "MAGENTA"
+    else:
+        return "ERROR"
+def MeanHSV(yPixelLocationsArr,xPixelLocationsArr, imgHSV):
+        #Gives mean HSV for the pixel locations and their color name
+        #imgHSV[yPixelLocation][xPixelLocation]= [H,S,V]
+        #Outputs corrected color in HSV and and color Name
+        avgH = mean([float(imgHSV[yPixelLocationsArr[indexPixel]][xPixelLocationsArr[indexPixel]][0]) for indexPixel in range(len(yPixelLocationsArr))])
+        avgS = mean([float(imgHSV[yPixelLocationsArr[indexPixel]][xPixelLocationsArr[indexPixel]][1]) for indexPixel in range(len(yPixelLocationsArr))])
+        avgV = mean([float(imgHSV[yPixelLocationsArr[indexPixel]][xPixelLocationsArr[indexPixel]][2]) for indexPixel in range(len(yPixelLocationsArr))])
+        colorHSV = CorrectHSV([avgH,avgS,avgV]);
+        return colorHSV, ColorRecog(colorHSV)
+
+
 
 
 class Camera_Object():#Initialize Camera-> Get undistorted/distorted Images in BGR Format
     numberCameras = 0 #Number of connected cameras
-    BIG_CAMERA = 0;#1920 by 1080 pixels
-    SMALL_CAMERA = 1;#640 by 480 pixels
     camera = None;
     dimensions = None;
     def __init__(self,cameraNum=0,cameraType = BIG_CAMERA):
+        self.cameraType = cameraType;#Big or small camera
         self.Scan()#Finds connnected cameras
         self.InitializeCamera(cameraNum);
-        self.cameraType = cameraType;#Big or small camera
         pass
     def Scan(self):#Finds connnected cameras
         self.numberCameras=0
@@ -59,21 +174,21 @@ class Camera_Object():#Initialize Camera-> Get undistorted/distorted Images in B
     def InitializeCamera(self, cameraNum):#Choose camera num/type, set dimensions, and open camera feed
         if(self.numberCameras==0):#No cameras found->return error
             raise NameError("No Cameras found!")
-        elif(self.numberCameras>=cameraNum):
+        elif(self.numberCameras<cameraNum+1):
             raise NameError("Wrong Camera Index")
         else:#Correct Camera
             self.camera = cv2.VideoCapture(cameraNum)#Start Capture
-            if(self.cameraType==self.BIG_CAMERA):
+            if(self.cameraType==BIG_CAMERA):
                 self.dimensions = (1920,1080)
             else:
                 self.dimensions = (640,480)
             self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, self.dimensions[0])
             self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, self.dimensions[1])
     def Undistort(self,img):#Undistort Image
-        if(self.cameraType==self.BIG_CAMERA):
-            undistortedImg = cv2.remap(img, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+        if(self.cameraType==BIG_CAMERA):
+            undistortedImg = cv2.remap(img, MAP_1, MAP_2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
         else:
-            undistortedImg = cv2.undistort(img, cameraMatrixSmall, distCoeffsSmall, None)
+            undistortedImg = cv2.undistort(img, CAMERA_SMALL_MATRIX, DIST_COEFF_SMALL, None)
         return undistortedImg; 
     def GetImageBGR(self, undistorted=True):#Get undistorted/distorted image in BGR format
         ret, distortedImage = self.camera.read()
@@ -81,10 +196,6 @@ class Camera_Object():#Initialize Camera-> Get undistorted/distorted Images in B
             return self.Undistort(distortedImage)
         else:
             return distortedImage;
-
-
-
-
 class Google_Data():
     centerLocation = None; #Center Location in Pixels -> [x,y]
     confidence = None;#Confidence in that word or object identification
@@ -159,29 +270,41 @@ class Google_Analysis():
             yCenter = sum(vertice[1] for vertice in realWorldObject.rectangularVertices)
             realWorldObject.centerLocation=[xCenter/4,yCenter/4];
             self.real_world_objects.append(realWorldObject)
-
 class OpenCV_Contour_Data():
+    contourOpenCV = None; #open cv contour
     centerLocation = None; #Center Location in Pixels -> [x,y]
     width, height, area = None, None, None; #Details of box that encloses object
+    vertices = [];
     color = [];
-    shape = [];
+    shape = None;
     number = None;
-    insideObjects = None;
+    pixels = None;
+    colorName = None;
+    insideObjects = [];#Open_CV_Analysis Objects from running a crop of contour image
+    centerRealWorld = None;#This will not change unless you change it yourself
 
-class Open_CV_Analysis():#Call this to get opencv data for objects in undistorted image
+class Open_CV_Analysis():#Call this to get opencv data for contours in undistorted image
     contour_objects = [];
-    contours=[];
-    SIMPLE_FAST_COLOR  = 0;
-    COMPLEX_FAST_COLOR = 1;
-    SIMPLE_SLOW_COLOR  = 2;
-    COMPLEX_SLOW_COLOR = 3;
     def __init__(self, imageBGR, colorRecogType = SIMPLE_FAST_COLOR, whiteBackground = True):
+
+        #Store images in different formats:
         self.imageBGR= imageBGR;
+        self.imageHSV = cv2.cvtColor(self.imageBGR, cv2.COLOR_BGR2HSV)
         self.colorRecogType = colorRecogType;
         self.whiteBackground = whiteBackground;
+
+        #Threshold Image:
         self.thresholdBGR, self.thresholdGray = self.GetThresholdImage()
+
+        #Get appropiate Contours and their information
         self.GetContour()
+
+        #Create an image with contours and their centers
         self.DrawContours()
+
+        #Find color for all contours:
+        self.ColorContour()
+
         
     def GetThresholdImage(self, kSize = (5,5), sigmaX =0, threshType =  cv2.THRESH_BINARY | cv2.THRESH_OTSU):
         #Necessary Input: undistorted image in BGR Format
@@ -199,6 +322,7 @@ class Open_CV_Analysis():#Call this to get opencv data for objects in undistorte
         return threshImageBGR, threshImageGray;
 
     def GetContour(self, cMode = cv2.RETR_TREE, cMethod = cv2.CHAIN_APPROX_SIMPLE):
+        #Stores all relevant contours and their properties in contour_objects list
         #Find Contours:
         contours,_ = cv2.findContours(image=self.thresholdGray, mode=cMode, method=cMethod)
         
@@ -206,36 +330,42 @@ class Open_CV_Analysis():#Call this to get opencv data for objects in undistorte
         dimensions = self.imageBGR.shape
         
         contourNum =0;
-        for contour in contours:
+        for contourOpenCV in contours:
             
             #Get Width, Height, Area of each contour
-            x,y,width, height = cv2.boundingRect(contour)
+            x,y,width, height = cv2.boundingRect(contourOpenCV)
             area= width*height*1.0;
             contourPercentage = 100.0*(area)/(dimensions[0]*dimensions[1]*1.0)
             
             #Ignore huge or very small contours
             if(0.3<=contourPercentage<=95):
                 #Create contour Object:
-                self.contours.append(contour)
                 contour_data = OpenCV_Contour_Data()
                 self.contour_objects.append(contour_data)
-                
+                contour_data.contourOpenCV= contourOpenCV
+
                 #Insert width, height, area, number data
                 contour_data.width, contour_data.height= width, height
                 contour_data.area = area
                 contour_data.number=contourNum
 
                 #Find Center of Contour
-                M = cv2.moments(contour)
+                M = cv2.moments(contourOpenCV)
                 if M["m00"] != 0:#Found Center, don't divide by 0
                     contour_data.centerLocation = [int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])]
+
+                #Find Shape of Contour
+                self.ShapeContour(contour_data)
 
                 contourNum +=1;
 
     def DrawContours(self, contourColor=(0,255,0),centerColor = (0,0,255)):
+        #Creates an image with all contours and their centers drawn
         self.contourImage = self.imageBGR.copy()
+
         #Draw Contours:
-        cv2.drawContours(self.contourImage, self.contours, -1, contourColor, 2)
+        allContours = [contourObject.contourOpenCV for contourObject in self.contour_objects]
+        cv2.drawContours(self.contourImage,allContours , -1, contourColor, 2)
 
         #Draw center for each contour on the image
         for contourObject in self.contour_objects:
@@ -244,6 +374,57 @@ class Open_CV_Analysis():#Call this to get opencv data for objects in undistorte
             cv2.circle(self.contourImage, contourObject.centerLocation, 7, centerColor, -1)
             cv2.putText(self.contourImage, "Center_"+str(contourObject.number), (centerX - 20, centerY - 20),
             cv2.FONT_HERSHEY_SIMPLEX, 0.5, centerColor, 2)
+
+    def ShapeContour(self, contour_data):
+        #Input: single contour object 
+        #Fill shape property in contour object
+ 
+        def shapeFromVertices(vertices, contour_data):
+            numVertices = len(vertices);
+            if(numVertices==3):
+                contour_data.shape = "TRIANGLE"
+            elif(numVertices==4):
+                contour_data.shape = "RECTANGLE"
+            else:
+                contour_data.shape =str(numVertices)+" EDGES"
+
+        perimeter = cv2.arcLength(contour_data.contourOpenCV, True)
+        vertices = cv2.approxPolyDP(contour_data.contourOpenCV, 0.04 * perimeter, True);
+        contour_data.vertices = vertices;
+        shapeFromVertices(vertices, contour_data)
+
+    def PixelsInContour(self, contour_data:OpenCV_Contour_Data):
+        #Input: Single contour object
+        #Adds Pixel Locations to object
+
+        # Create a mask image that contains the contour filled in
+        cimg = np.zeros_like(self.imageBGR)
+
+        #cimg = np.full((1080, 1920), 0, dtype=np.int32)
+        allContours = [contourObject.contourOpenCV for contourObject in self.contour_objects]
+        cv2.drawContours(cimg, allContours, contour_data.number, color=255, thickness=-1)
+        
+        #cv2.imshow("object{}".format(i+1),cimg)
+
+
+        # Access the image pixels and create a 1D numpy array then add to list
+        contour_data.pixels = np.where(cimg == 255)
+
+        #cv2.drawContours(emptyImg, contours, i, color=0, thickness=-1)#reset
+
+    def ColorContour(self):
+        #Finds color for each contour depending on the color recognition algo 
+        if(self.colorRecogType==SIMPLE_SLOW_COLOR):#Get mean HSV from all pixels in contour
+            for contourObject in self.contour_objects: self.PixelsInContour(contourObject)
+            for contourObject in self.contour_objects: 
+                contourObject.color, contourObject.colorName= MeanHSV(contourObject.pixels[0],contourObject.pixels[1], self.imageHSV)
+        else:
+            return 0;
+
+
+
+
+
 
 def testText(imageFile):
     googleData = Google_Analysis(imageFile, analyzeObjects=False)
@@ -281,36 +462,39 @@ def testObjects(imageFile):
             break
 
 
-def RealWorldCoordinates():
-    #Returns real world coordinates pixel location
-    pass
+
+
 
 # testText('testImages/4.jpg');
 # testObjects('testImages/48.jpg');
 
 
-img_path = "testImages/35.jpg"
-imgBGR = cv2.imread(img_path)
-image1Data = Open_CV_Analysis(imgBGR)
+# img_path = "testImages/48.jpg"
+# imgBGR = cv2.imread(img_path)
+# image1Data = Open_CV_Analysis(imgBGR,colorRecogType=SIMPLE_SLOW_COLOR)
 
-cv2.imshow('Thresh', image1Data.thresholdBGR)
-cv2.imshow('SRC_Image', image1Data.imageBGR)
-cv2.imshow('Contour_Image', image1Data.contourImage)
+# cv2.imshow('Thresh', image1Data.thresholdBGR)
+# cv2.imshow('SRC_Image', image1Data.imageBGR)
+# cv2.imshow('Contour_Image', image1Data.contourImage)
 
-for contourObject in image1Data.contour_objects:
-    print("Contour:", contourObject.number)
-    print(contourObject.centerLocation)
-    print("width, height, area:", contourObject.width, contourObject.height, contourObject.area)
-    print("-"*100)
+# for contourObject in image1Data.contour_objects:
+#     print("Contour", contourObject.number)
+#     print(contourObject.centerLocation)
+#     print("width, height, area:", contourObject.width, contourObject.height, contourObject.area)
+#     print("Shape:", contourObject.shape)
+#     print("HSV:", contourObject.color)
+#     print("Color:", contourObject.colorName)
+#     print("-"*100)
+#     x,y = RealWorldCoordinates(contourObject.centerLocation, 30, [0,300,167])
+#     print(x,y)
 
 
-
-while True:
-    k = cv2.waitKey(1)
-    if k%256 == 27:
-        # ESC pressed
-        print("Escape hit, closing...")
-        break
+# while True:
+#     k = cv2.waitKey(1)
+#     if k%256 == 27:
+#         # ESC pressed
+#         print("Escape hit, closing...")
+#         break
 
 
 # # Read First Image

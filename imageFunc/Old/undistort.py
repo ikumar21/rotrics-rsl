@@ -1,4 +1,4 @@
-#Old 
+#Every Function implemented
 
 
 import cv2

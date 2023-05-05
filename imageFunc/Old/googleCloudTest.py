@@ -1,3 +1,4 @@
+#Every Function implemented
 from typing import Sequence
 from google.cloud import vision
 import io

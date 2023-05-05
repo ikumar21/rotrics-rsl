@@ -5,19 +5,12 @@ import undistort
 from statistics import mean
 # import matplotlib.pyplot as plt
 
-img_path = "testImages/47.jpg"
+img_path = "testImages/50.jpg"
 
 
-def correctHSV(hsvArray):
-    #Returns tuple : (H,S,V) in correct format: 0-360degrees, 0-100%, 0-100%
-    return round(hsvArray[0]*2.0), round(100.0*hsvArray[1]/255.0,1), round(100.0*hsvArray[2]/255.0,1)
 
-def meanHSV(yPixelLocationsArr,xPixelLocationsArr, imgHSV):#Returns mean HSV in area
-    #imgHSV[yPixelLocation][xPixelLocation]= [H,S,V]
-    avgH = mean([float(imgHSV[yPixelLocationsArr[indexPixel]][xPixelLocationsArr[indexPixel]][0]) for indexPixel in range(len(yPixelLocationsArr))])
-    avgS = mean([float(imgHSV[yPixelLocationsArr[indexPixel]][xPixelLocationsArr[indexPixel]][1]) for indexPixel in range(len(yPixelLocationsArr))])
-    avgV = mean([float(imgHSV[yPixelLocationsArr[indexPixel]][xPixelLocationsArr[indexPixel]][2]) for indexPixel in range(len(yPixelLocationsArr))])
-    return [avgH,avgS,avgV]
+
+
 
 
 def allHSV(yPixelLocationsArr,xPixelLocationsArr, imgHSV):#Returns all HSV and their occurence
@@ -45,127 +38,11 @@ def allHSV(yPixelLocationsArr,xPixelLocationsArr, imgHSV):#Returns all HSV and t
 
 
 
-def pixelsInContour(contours,img):
-    objectLocations = []
-    # For each list of contour points...
-    for i in range(len(contours)):
-        # Create a mask image that contains the contour filled in
-        cimg = np.zeros_like(img)
-
-        #cimg = np.full((1080, 1920), 0, dtype=np.int32)
-        
-        cv2.drawContours(cimg, contours, i, color=255, thickness=-1)
-        #cv2.imshow("object{}".format(i+1),cimg)
-        # Access the image pixels and create a 1D numpy array then add to list
-        pts = np.where(cimg == 255)
-        #cv2.drawContours(emptyImg, contours, i, color=0, thickness=-1)#reset
-        objectLocations.append(pts)
-    return objectLocations
-
-
-def threshPic(undistortedImg):
-    grayImg = cv2.cvtColor(undistortedImg, cv2.COLOR_BGR2GRAY)
-    gs_img = cv2.GaussianBlur(grayImg, (5, 5), 0) 
-    threshA = cv2.threshold(gs_img, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-    return threshA;
-
-
-def getDrawContour(imgThreshBGR,imgThreshGray):
-    contours, hierarchy = cv2.findContours(image=imgThreshGray, mode=cv2.RETR_TREE, method=cv2.CHAIN_APPROX_SIMPLE)#Find contours
-    dimensions = imgThreshBGR.shape#Find pixel dimensions
-    centerX =[]#x location of each object's center
-    centerY = []#y location of each object's center
-    numberCount =0;
-    actualContours=[];
-    for c in contours:
-        x,y,w,h = cv2.boundingRect(c)#Get Width and Height of each object
-        if(w*h<0.95*dimensions[0]*dimensions[1]and w*h>0.003*dimensions[0]*dimensions[1]):#Don't plot if too big or too small
-            actualContours.append(c)
-            numberCount+=1
-            cv2.drawContours(imgThreshBGR, [c], -1, (0, 255, 0), 2)#Draw Contours in Green
-            M = cv2.moments(c)
-            if M["m00"] != 0:#Found Center, don't divide by 0
-                # print("FOUND, Area:",w*h)
-                cX = int(M["m10"] / M["m00"])
-                cY = int(M["m01"] / M["m00"])
-                centerX.append(cX)
-                centerY.append(cY)
-                cv2.circle(imgThreshBGR, (cX, cY), 7, (0, 0, 255), -1)
-                cv2.putText(imgThreshBGR, "center"+str(numberCount), (cX - 20, cY - 20),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-            # draw the contour and center of the shape on the image
-
-    return centerX,centerY, actualContours
-
-
-def getObjectColor(contours,simpleImage,imgHSV):
-    objectLocations = pixelsInContour(contours,simpleImage)
-    for object in objectLocations:#Print hsv for objects
-        #print(meanHSV(object[0],object[1], imgHSV))
-        hsv, count = allHSV(object[0],object[1], imgHSV)
-        print(hsv,count)
-        print("="*80)
-        # b = [hsv[0].tolist()]
-        # try:
-        #     indexInHSV = b.index(hsv[1].tolist())
-        # except:
-        #     indexInHSV = -1
-        # if(indexInHSV ==-1):
-        #     print("OK")
 
 
 
-def colorRecog(hsv):#Input hsv value -> [H,S,V]
-    #output: color in string all capitilized
-    hVal = hsv[0]
-    sVal = hsv[1]
-    vVal = hsv[2]
-    if(sVal<10):#Could be white, Gray or white
-        if(vVal >=90):
-            return "WHITE"
-        elif(vVal<=6):
-            return "BLACK"
-        else:
-            return "GRAY"
-    if(0<=hVal<=30 or 330<=hVal<=360):
-        return "RED"
-    elif(30<=hVal<=50):
-        return "ORANGE"
-    elif(50<=hVal<=90):
-        return "YELLOW"
-    elif(90<=hVal<=150):
-        return "GREEN"
-    elif(150<=hVal<=210):
-        return "CYAN"
-    elif(210<=hVal<=270):
-        return "BLUE"
-    elif(270<=hVal<=330):
-        return "MAGENTA"
-    else:
-        return "ERROR"
-    
 
 
-
-def getObjectShape(contours):
-    def shapeFromVertice(vertices, shapes, num):
-        prefix = "Object " +str(num)+": "
-        numVertices = len(vertices);
-        if(numVertices==3):
-            shapes.append(prefix+"Triangle")
-        elif(numVertices==4):
-            shapes.append(prefix+"Rectangle")
-        else:
-            shapes.append(prefix+str(numVertices)+" edges")
-    allShapes=[];
-    allVertices = [];
-    for num in range(len(contours)):
-        contour = contours[num];
-        perimeter = cv2.arcLength(contour, True)
-        vertices = cv2.approxPolyDP(contour, 0.04 * perimeter, True);
-        allVertices.append(vertices)
-        shapeFromVertice(vertices, allShapes, num+1)
-    return allShapes;
 
 def cropImg(contours, img):
     for contour in contours:
@@ -222,8 +99,63 @@ def runStuff(imgBGR, whiteBackground):
             print("Escape hit, closing...")
             break
 
+#Already Implemented:
+def colorRecog(hsv):#Input hsv value -> [H,S,V]
+    #output: color in string all capitilized
+    hVal = hsv[0]
+    sVal = hsv[1]
+    vVal = hsv[2]
+    if(sVal<10):#Could be white, Gray or white
+        if(vVal >=90):
+            return "WHITE"
+        elif(vVal<=6):
+            return "BLACK"
+        else:
+            return "GRAY"
+    if(0<=hVal<=30 or 330<=hVal<=360):
+        return "RED"
+    elif(30<=hVal<=50):
+        return "ORANGE"
+    elif(50<=hVal<=90):
+        return "YELLOW"
+    elif(90<=hVal<=150):
+        return "GREEN"
+    elif(150<=hVal<=210):
+        return "CYAN"
+    elif(210<=hVal<=270):
+        return "BLUE"
+    elif(270<=hVal<=330):
+        return "MAGENTA"
+    else:
+        return "ERROR"
 
 
+
+def meanHSV(yPixelLocationsArr,xPixelLocationsArr, imgHSV):#Returns mean HSV in area
+    #imgHSV[yPixelLocation][xPixelLocation]= [H,S,V]
+    avgH = mean([float(imgHSV[yPixelLocationsArr[indexPixel]][xPixelLocationsArr[indexPixel]][0]) for indexPixel in range(len(yPixelLocationsArr))])
+    avgS = mean([float(imgHSV[yPixelLocationsArr[indexPixel]][xPixelLocationsArr[indexPixel]][1]) for indexPixel in range(len(yPixelLocationsArr))])
+    avgV = mean([float(imgHSV[yPixelLocationsArr[indexPixel]][xPixelLocationsArr[indexPixel]][2]) for indexPixel in range(len(yPixelLocationsArr))])
+    return [avgH,avgS,avgV]
+def correctHSV(hsvArray):
+    #Returns tuple : (H,S,V) in correct format: 0-360degrees, 0-100%, 0-100%
+    return round(hsvArray[0]*2.0), round(100.0*hsvArray[1]/255.0,1), round(100.0*hsvArray[2]/255.0,1)
+def pixelsInContour(contours,img):
+    objectLocations = []
+    # For each list of contour points...
+    for i in range(len(contours)):
+        # Create a mask image that contains the contour filled in
+        cimg = np.zeros_like(img)
+
+        #cimg = np.full((1080, 1920), 0, dtype=np.int32)
+        
+        cv2.drawContours(cimg, contours, i, color=255, thickness=-1)
+        #cv2.imshow("object{}".format(i+1),cimg)
+        # Access the image pixels and create a 1D numpy array then add to list
+        pts = np.where(cimg == 255)
+        #cv2.drawContours(emptyImg, contours, i, color=0, thickness=-1)#reset
+        objectLocations.append(pts)
+    return objectLocations
 def getObjectLocation(imgBGR):
     objectWhite= False;
     imgBGR = cv2.imread(imgBGR)
@@ -240,6 +172,62 @@ def getObjectLocation(imgBGR):
     threshColor = cv2.cvtColor(thresholdPic,cv2.COLOR_GRAY2BGR)#Convert Gray image to BGR to have Markings in color
     centerX,centerY, contours = getDrawContour(imgThreshBGR=threshColor,imgThreshGray=thresholdPic)
     return centerX,centerY
+
+def threshPic(undistortedImg):
+    grayImg = cv2.cvtColor(undistortedImg, cv2.COLOR_BGR2GRAY)
+    gs_img = cv2.GaussianBlur(grayImg, (5, 5), 0) 
+    threshA = cv2.threshold(gs_img, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+    return threshA;
+
+def getDrawContour(imgThreshBGR,imgThreshGray):
+    contours, hierarchy = cv2.findContours(image=imgThreshGray, mode=cv2.RETR_TREE, method=cv2.CHAIN_APPROX_SIMPLE)#Find contours
+    dimensions = imgThreshBGR.shape#Find pixel dimensions
+    centerX =[]#x location of each object's center
+    centerY = []#y location of each object's center
+    numberCount =0;
+    actualContours=[];
+    for c in contours:
+        x,y,w,h = cv2.boundingRect(c)#Get Width and Height of each object
+        if(w*h<0.95*dimensions[0]*dimensions[1]and w*h>0.003*dimensions[0]*dimensions[1]):#Don't plot if too big or too small
+            actualContours.append(c)
+            numberCount+=1
+            cv2.drawContours(imgThreshBGR, [c], -1, (0, 255, 0), 2)#Draw Contours in Green
+            M = cv2.moments(c)
+            if M["m00"] != 0:#Found Center, don't divide by 0
+                # print("FOUND, Area:",w*h)
+                cX = int(M["m10"] / M["m00"])
+                cY = int(M["m01"] / M["m00"])
+                centerX.append(cX)
+                centerY.append(cY)
+                cv2.circle(imgThreshBGR, (cX, cY), 7, (0, 0, 255), -1)
+                cv2.putText(imgThreshBGR, "center"+str(numberCount), (cX - 20, cY - 20),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+            # draw the contour and center of the shape on the image
+
+    return centerX,centerY, actualContours
+
+def getObjectShape(contours):
+    def shapeFromVertice(vertices, shapes, num):
+        prefix = "Object " +str(num)+": "
+        numVertices = len(vertices);
+        if(numVertices==3):
+            shapes.append(prefix+"Triangle")
+        elif(numVertices==4):
+            shapes.append(prefix+"Rectangle")
+        else:
+            shapes.append(prefix+str(numVertices)+" edges")
+    allShapes=[];
+    allVertices = [];
+    for num in range(len(contours)):
+        contour = contours[num];
+        perimeter = cv2.arcLength(contour, True)
+        vertices = cv2.approxPolyDP(contour, 0.04 * perimeter, True);
+        allVertices.append(vertices)
+        shapeFromVertice(vertices, allShapes, num+1)
+    return allShapes;
+
+
+
 
 if __name__ == "__main__":
     objectWhite= True;
@@ -289,5 +277,3 @@ if __name__ == "__main__":
             # ESC pressed
             print("Escape hit, closing...")
             break
-
-

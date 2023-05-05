@@ -12,4 +12,11 @@ class raObject():
 pi = raObject(7)
 pi.you()
 
-print(pi.war)
+def InitiliazeConstants():
+    global FX
+    FX= 5;
+
+
+
+InitiliazeConstants();
+print(FX)

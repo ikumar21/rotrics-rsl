@@ -12,7 +12,7 @@ img_path = "testImages/50.jpg"
 
 
 
-
+#Not good Function:
 def allHSV(yPixelLocationsArr,xPixelLocationsArr, imgHSV):#Returns all HSV and their occurence
     #Input yPixelLocationsArr : [yPos0, yPos1, ..]
     #Input xPixelLocationsArr : [xPos0, xPos1, ..]

@@ -4,13 +4,20 @@
 #Press esc to exit program
 
 import sys
+import os
 # adding folder to the system path
 sys.path.insert(0, '../imageFunc')
+sys.path.insert(0, '../')
 import image_module as img_m
 import cv2
 import glob
 
 directorySaveImage = 'testImages/*.jpg'
+
+#Create directory if doesn't exist
+folderExists = os.path.exists(directorySaveImage[0:directorySaveImage.index("/")])
+if(not folderExists):
+    os.mkdir(directorySaveImage[0:directorySaveImage.index("/")])
 
 camera0 = img_m.Camera_Object(cameraNum=0,cameraType=img_m.BIG_CAMERA)
 
@@ -20,7 +27,7 @@ def findMaxFileName(directoryName):
     maxNum = 0;
     for fileName in images:
         try:#Macbook
-            num = int(fileName[fileName.index('/')+1:fileName.index('.')])
+            num = int(fileName[fileName.index("/")+12:fileName.index('.')])
         except:
             num = int(fileName[fileName.index("\\")+1:fileName.index('.')])
         maxNum = num if num>maxNum else maxNum

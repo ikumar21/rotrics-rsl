@@ -1,3 +1,7 @@
+import sys
+# adding folder to the system path
+sys.path.insert(0, '../imageFunc')
+
 import numpy as np
 import os
 import glob
@@ -7,9 +11,25 @@ import io
 from statistics import mean
 from scipy.optimize import fsolve
 import math
+
+#Google Cloud Setup:
+
+#Terminal (Download Library): pip3 install --upgrade google-cloud-vision
+
+#Macbook: Enter in Terminal
+# export PROJECT_ID=rotricstest
+# export GOOGLE_CLOUD_PROJECT=rotricstest
+# export GOOGLE_CLOUD_QUOTA_PROJECT=rotricstest
+# export GOOGLE_APPLICATION_CREDENTIALS=../imageFunc/application_default_credentials.json
+
+#Windows Terminal: Everything above(replace export with set)
+#also change last Command: set GOOGLE_APPLICATION_CREDENTIALS=C:\Users\rsl\Desktop\rotrics-rsl\imageFunc\application_default_credentials.json
+
+
+
 #Use demo to Test: https://cloud.google.com/vision#section-2
 
-#Google Cloud:
+#Google Cloud Vision:
 client = vision.ImageAnnotatorClient()
 
 #Initializes constants used in module
@@ -20,8 +40,13 @@ def InitializeConstants():
     
     #1920*1080 camera:
     #Import Undistortion constants
-    K = np.load("cImages/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
-    D = np.load("cImages/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+    try:
+        K = np.load("cImages/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+        D = np.load("cImages/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+    except:
+        K = np.load("../imageFunc/cImages/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+        D = np.load("../imageFunc/cImages/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+
     FISHEYE_K1 = D[0][0];
     FISHEYE_K2 = D[1][0];
     FISHEYE_K3 = D[2][0];
@@ -146,9 +171,52 @@ def MeanHSV(yPixelLocationsArr,xPixelLocationsArr, imgHSV):
         avgH = mean([float(imgHSV[yPixelLocationsArr[indexPixel]][xPixelLocationsArr[indexPixel]][0]) for indexPixel in range(len(yPixelLocationsArr))])
         avgS = mean([float(imgHSV[yPixelLocationsArr[indexPixel]][xPixelLocationsArr[indexPixel]][1]) for indexPixel in range(len(yPixelLocationsArr))])
         avgV = mean([float(imgHSV[yPixelLocationsArr[indexPixel]][xPixelLocationsArr[indexPixel]][2]) for indexPixel in range(len(yPixelLocationsArr))])
-        colorHSV = CorrectHSV([avgH,avgS,avgV]);
-        return colorHSV, ColorRecog(colorHSV)
+        colorHSV = [avgH,avgS,avgV];
+        return colorHSV, ColorRecog(CorrectHSV(colorHSV))
 
+def HSV2_BGR(colorHSV):
+    colorImg = np.uint8([[colorHSV]]) 
+    colorBGR = cv2.cvtColor(colorImg, cv2.COLOR_HSV2BGR)
+    return colorBGR
+
+def CropImg(contour, vertices, imgBGR, backgroundColorBGR=(128,151,166)):
+    
+    #Get min x, y and max x,y of vertices for cropping
+    minY = min([elem[0][1] for elem in vertices])
+    maxY = max([elem[0][1] for elem in vertices])
+    maxX = max([elem[0][0] for elem in vertices])
+    minX = min([elem[0][0] for elem in vertices])
+
+    #Create a gray image mask and fill in the contour with white, rest is black
+    mask = np.zeros_like(cv2.cvtColor(imgBGR, cv2.COLOR_BGR2GRAY))
+    cv2.drawContours(mask, [contour], 0, color=255, thickness=-1)
+
+    #Crop mask Image:
+    mask = mask[minY:maxY, minX:maxX];
+    
+    #Crop actual image in BGR format:
+    imgCropBGR = imgBGR[minY:maxY, minX:maxX].copy()
+
+    #Find where pixels where contour is not add (Find background):
+    pixels = np.where(mask != 255)
+    yPixelLocationsArr,xPixelLocationsArr = pixels[0],pixels[1]
+
+    #Replace background with certain color:
+    imgCropBGR = imgBGR[minY:maxY, minX:maxX].copy()
+    for indexPixel in range(len(yPixelLocationsArr)):
+        imgCropBGR[yPixelLocationsArr[indexPixel]][xPixelLocationsArr[indexPixel]]=backgroundColorBGR;
+    
+    #show image until user presses space:
+    cv2.imshow("New Image", imgCropBGR);
+    while True:
+        k = cv2.waitKey(1)
+        if k%256 == 27:
+            # ESC pressed
+            print("Escape hit, closing...")
+            break
+
+
+    return imgCropBGR
 
 
 
@@ -482,7 +550,7 @@ def testObjects(imageFile):
 #     print(contourObject.centerLocation)
 #     print("width, height, area:", contourObject.width, contourObject.height, contourObject.area)
 #     print("Shape:", contourObject.shape)
-#     print("HSV:", contourObject.color)
+#     print("Corrected HSV:", CorrectHSV(contourObject.color))
 #     print("Color:", contourObject.colorName)
 #     print("-"*100)
 #     x,y = RealWorldCoordinates(contourObject.centerLocation, 30, [0,300,167])

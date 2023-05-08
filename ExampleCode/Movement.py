@@ -18,7 +18,7 @@ dexarm1.go_home()#Goes to robot home position
 
 
 robotConnectedConveyor = True;
-robotConnectedRail = True;
+robotConnectedRail = False;
 
 #Command to move dexarm (mm): x = 50; y = 250; z = 10; 
 #Feedrate is speed of robot movement(mm/min): Maximum is 30,000 mm/min
@@ -43,23 +43,24 @@ dexarm1._send_cmd("G92.1\r");#Resets back to factory coordinate system: home is 
 if(robotConnectedConveyor):
     #Move conveyor forward at speed of 1000 mm/min: Max speed is 7200 mm/min-> 600 mm/sec
     dexarm1.conveyor_belt_forward(1000)
-    time.sleep(1)#Move for at least one second
+    time.sleep(5)#Move for at least one second
 
     #Stop Conveyor
     dexarm1.conveyor_belt_stop()
 
     #Move conveyor backwards at speed of 2000 mm/min
     dexarm1.conveyor_belt_backward(2000)
-    time.sleep(0.5)#Move for at least 500 milliseconds
+    time.sleep(2)#Move for at least 500 milliseconds
 
     #Stop Conveyor
     dexarm1.conveyor_belt_stop()
+    time.sleep(5)
 
     #Move Conveyor Belt Certain Position (Busy Wait):
     #Positive position-> moves forward, negative-> moves to the backwards
     #Inputs: position(mm), speed (mm/min)
 
-    dexarm1.conveyor_belt_move(position=50,speed=2000)
+    dexarm1.conveyor_belt_move(position=400,speed=2000)
 
 
 if(robotConnectedRail):

@@ -19,7 +19,6 @@ folderExists = os.path.exists(directorySaveImage[0:directorySaveImage.index("/")
 if(not folderExists):
     os.mkdir(directorySaveImage[0:directorySaveImage.index("/")])
 
-camera0 = img_m.Camera_Object(cameraNum=0,cameraType=img_m.BIG_CAMERA)
 
 
 def findMaxFileName(directoryName):
@@ -33,10 +32,15 @@ def findMaxFileName(directoryName):
         maxNum = num if num>maxNum else maxNum
     return maxNum;
 
+
+#Start up camera
+camera0 = img_m.Camera_Object(cameraNum=0,cameraType=img_m.BIG_CAMERA)
+
 while True:
+    #Get undistorted image in BGR Format
     undistortedImage = camera0.GetImageBGR(undistorted=True);
 
-    #Get Live Camera Image:
+    #Show Live Camera Image:
     cv2.imshow("Live Camera", undistortedImage)
 
     #Pause program and look for keyboard input:

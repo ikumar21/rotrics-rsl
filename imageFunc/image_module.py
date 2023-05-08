@@ -23,7 +23,11 @@ import math
 # export GOOGLE_APPLICATION_CREDENTIALS=../imageFunc/application_default_credentials.json
 
 #Windows Terminal: Everything above(replace export with set)
-#also change last Command: set GOOGLE_APPLICATION_CREDENTIALS=C:\Users\rsl\Desktop\rotrics-rsl\imageFunc\application_default_credentials.json
+#also change last Command: 
+# set PROJECT_ID=rotricstest
+# set GOOGLE_CLOUD_PROJECT=rotricstest
+# set GOOGLE_CLOUD_QUOTA_PROJECT=rotricstest
+# set GOOGLE_APPLICATION_CREDENTIALS=C:\Users\rsl\Desktop\rotrics-rsl\imageFunc\application_default_credentials.json
 
 
 
@@ -179,7 +183,18 @@ def HSV2_BGR(colorHSV):
     colorBGR = cv2.cvtColor(colorImg, cv2.COLOR_HSV2BGR)
     return colorBGR
 
-def CropImg(contour, vertices, imgBGR, backgroundColorBGR=(128,151,166)):
+def CropImg(vertices, img):
+    #Get min x, y and max x,y of vertices for cropping
+    minY = min([elem[0][1] for elem in vertices])
+    maxY = max([elem[0][1] for elem in vertices])
+    maxX = max([elem[0][0] for elem in vertices])
+    minX = min([elem[0][0] for elem in vertices])
+
+    imgCrop = img[minY:maxY, minX:maxX].copy()
+    return imgCrop;
+
+
+def CropImgInner(contour, vertices, imgBGR, backgroundColorBGR=(128,151,166)):
     
     #Get min x, y and max x,y of vertices for cropping
     minY = min([elem[0][1] for elem in vertices])
@@ -346,7 +361,8 @@ class OpenCV_Contour_Data():
     color = [];
     shape = None;
     number = None;
-    pixels = None;
+    cropImgGray = None
+    pixelsInCropImg = None;
     colorName = None;
     insideObjects = [];#Open_CV_Analysis Objects from running a crop of contour image
     centerRealWorld = None;#This will not change unless you change it yourself
@@ -429,18 +445,18 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
 
     def DrawContours(self, contourColor=(0,255,0),centerColor = (0,0,255)):
         #Creates an image with all contours and their centers drawn
-        self.contourImage = self.imageBGR.copy()
+        self.contourImageBGR = self.imageBGR.copy()
 
         #Draw Contours:
         allContours = [contourObject.contourOpenCV for contourObject in self.contour_objects]
-        cv2.drawContours(self.contourImage,allContours , -1, contourColor, 2)
+        cv2.drawContours(self.contourImageBGR,allContours , -1, contourColor, 2)
 
         #Draw center for each contour on the image
         for contourObject in self.contour_objects:
             centerX = contourObject.centerLocation[0]
             centerY = contourObject.centerLocation[1]
-            cv2.circle(self.contourImage, contourObject.centerLocation, 7, centerColor, -1)
-            cv2.putText(self.contourImage, "Center_"+str(contourObject.number), (centerX - 20, centerY - 20),
+            cv2.circle(self.contourImageBGR, contourObject.centerLocation, 7, centerColor, -1)
+            cv2.putText(self.contourImageBGR, "Center_"+str(contourObject.number), (centerX - 20, centerY - 20),
             cv2.FONT_HERSHEY_SIMPLEX, 0.5, centerColor, 2)
 
     def ShapeContour(self, contour_data):
@@ -468,15 +484,16 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
         # Create a mask image that contains the contour filled in
         cimg = np.zeros_like(self.imageBGR)
 
-        #cimg = np.full((1080, 1920), 0, dtype=np.int32)
+        #cimg = np.full((1080, 1920, 3), 0, dtype=np.int32)
         allContours = [contourObject.contourOpenCV for contourObject in self.contour_objects]
         cv2.drawContours(cimg, allContours, contour_data.number, color=255, thickness=-1)
-        
+
         #cv2.imshow("object{}".format(i+1),cimg)
 
-
+        cropImgGray = CropImg(contour_data.vertices, cimg)
+        contour_data.cropImgHSV= CropImg(contour_data.vertices, self.imageHSV)
         # Access the image pixels and create a 1D numpy array then add to list
-        contour_data.pixels = np.where(cimg == 255)
+        contour_data.pixelsInCropImg = np.where(cropImgGray == 255)
 
         #cv2.drawContours(emptyImg, contours, i, color=0, thickness=-1)#reset
 
@@ -485,7 +502,7 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
         if(self.colorRecogType==SIMPLE_SLOW_COLOR):#Get mean HSV from all pixels in contour
             for contourObject in self.contour_objects: self.PixelsInContour(contourObject)
             for contourObject in self.contour_objects: 
-                contourObject.color, contourObject.colorName= MeanHSV(contourObject.pixels[0],contourObject.pixels[1], self.imageHSV)
+                contourObject.color, contourObject.colorName= MeanHSV(contourObject.pixelsInCropImg[0],contourObject.pixelsInCropImg[1], contourObject.cropImgHSV)
         else:
             return 0;
 
@@ -543,7 +560,7 @@ def testObjects(imageFile):
 
 # cv2.imshow('Thresh', image1Data.thresholdBGR)
 # cv2.imshow('SRC_Image', image1Data.imageBGR)
-# cv2.imshow('Contour_Image', image1Data.contourImage)
+# cv2.imshow('Contour_Image', image1Data.contourImageBGR)
 
 # for contourObject in image1Data.contour_objects:
 #     print("Contour", contourObject.number)

@@ -269,6 +269,14 @@ class Dexarm:
                 self._send_cmd("M2012 F" + str(speed) + 'D0\r')#Go forward
             else:
                 self._send_cmd("M2012 F" + str(speed) + 'D1\r')#Go backward
+
+                #
+                while True:
+                    serial_str = self.ser.readline().decode("utf-8")
+                    if len(serial_str) > 0:
+                        if serial_str.find("ok") > -1:
+                            print("read ok")
+                            break
             
             now_ns = time.time_ns() # Time in nanoseconds
             start_time = int(now_ns / 1000000) #Time in Milliseconds
@@ -280,8 +288,9 @@ class Dexarm:
                 timeElapsed = now_ms-start_time;
                 if(runForMS<timeElapsed):
                     break;
-            
+            print(start_time,now_ms,now_ms-start_time)
             self._send_cmd("M2013\r")#Stop
+            print(position, speed,runForMS )
 
 
 

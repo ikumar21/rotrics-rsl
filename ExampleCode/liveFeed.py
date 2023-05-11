@@ -7,7 +7,7 @@ import os
 # adding folder to the system path
 sys.path.insert(0, '../imageFunc')
 sys.path.insert(0, '../')
-sys.path.insert(0, 'C:/Users/rsl/Desktop/rotrics-rsl/imageFunc')
+#sys.path.insert(0, 'C:/Users/rsl/Desktop/rotrics-rsl/imageFunc')
 import image_module as i_m
 import cv2
 import glob
@@ -21,17 +21,21 @@ camera0 = i_m.Camera_Object(cameraNum=0,cameraType=i_m.BIG_CAMERA)
 
 while True:
     #Get undistorted image in BGR Format
-    undistortedImage = camera0.GetImageBGR(undistorted=True);
+    undistortedImage = camera0.GetImageBGR(undistorted=False);
 
     #Analyze Image:
     now_ns = time.time_ns() # Time in nanoseconds
     start_time = int(now_ns / 1000000) #Time in Milliseconds
-    image_analysis = i_m.Open_CV_Analysis(imageBGR=undistortedImage,colorRecogType=i_m.SIMPLE_SLOW_COLOR)
+
+    #Create Parameters
+    parameters = i_m.Open_CV_Parameters()
+    parameters.colorRecogType = i_m.SIMPLE_SLOW_COLOR#Change deafult parameter for color recognition
+
+    image_analysis = i_m.Open_CV_Analysis(imageBGR=undistortedImage,analysis_parameters= parameters)
     now_ns = time.time_ns() # Time in nanoseconds
     now_ms = int(now_ns / 1000000)
     print(now_ms-start_time)
 
-    #Show Live Camera Analysis
 
     #Create White Image
     contourImageData = np.zeros([1080,1920,3],dtype=np.uint8)
@@ -69,16 +73,19 @@ while True:
     print(now_ms-start_time)
 
 
-    #Show Images:
+    #Show Live Camera Analysis:
     cv2.imshow("Live Camera", allImages)
 
     #Pause program and look for keyboard input:
     k = cv2.waitKey(10)
 
+    # ESC pressed:Exit Program
     if k%256 == 27:
-        # ESC pressed:Exit Program
+        
         print("Escape hit, closing...")
         break
+
+
     # elif k%256 == 32:
     #     # SPACE pressed: Look Image
     #     cv2.destroyWindow("Live Camera")        

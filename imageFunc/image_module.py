@@ -36,6 +36,20 @@ import math
 #Google Cloud Vision:
 client = vision.ImageAnnotatorClient()
 
+def setGoogleEnviroment():
+    try: 
+        os.system("export PROJECT_ID=rotricstest")
+        os.system("export GOOGLE_CLOUD_PROJECT=rotricstest")
+        os.system("export GOOGLE_CLOUD_QUOTA_PROJECT=rotricstest")
+        os.system("export GOOGLE_APPLICATION_CREDENTIALS=../imageFunc/application_default_credentials.json")
+    except:
+        os.system("set PROJECT_ID=rotricstest")
+        os.system("set GOOGLE_CLOUD_PROJECT=rotricstest")
+        os.system("set GOOGLE_CLOUD_QUOTA_PROJECT=rotricstest")
+        os.system(r"set GOOGLE_APPLICATION_CREDENTIALS=C:\Users\rsl\Desktop\rotrics-rsl\imageFunc\application_default_credentials.json")
+
+setGoogleEnviroment();
+
 #Initializes constants used in module
 def InitializeConstants():
     global K,D, FISHEYE_K1,FISHEYE_K2,FISHEYE_K3,FISHEYE_K4,FISHEYE_FX,FISHEYE_FY,FISHEYE_CX,FISHEYE_CY;
@@ -172,6 +186,11 @@ def MeanHSV(yPixelLocationsArr,xPixelLocationsArr, imgHSV):
         #Gives mean HSV for the pixel locations and their color name
         #imgHSV[yPixelLocation][xPixelLocation]= [H,S,V]
         #Outputs corrected color in HSV and and color Name
+        
+        #IF input is empty ->returns None
+        if(len(yPixelLocationsArr)==0):
+            return None, None;
+
         avgH = mean([float(imgHSV[yPixelLocationsArr[indexPixel]][xPixelLocationsArr[indexPixel]][0]) for indexPixel in range(len(yPixelLocationsArr))])
         avgS = mean([float(imgHSV[yPixelLocationsArr[indexPixel]][xPixelLocationsArr[indexPixel]][1]) for indexPixel in range(len(yPixelLocationsArr))])
         avgV = mean([float(imgHSV[yPixelLocationsArr[indexPixel]][xPixelLocationsArr[indexPixel]][2]) for indexPixel in range(len(yPixelLocationsArr))])
@@ -280,29 +299,36 @@ class Camera_Object():#Initialize Camera-> Get undistorted/distorted Images in B
         else:
             return distortedImage;
 class Google_Data():
-    centerLocation = None; #Center Location in Pixels -> [x,y]
-    confidence = None;#Confidence in that word or object identification
-    rectangularVertices = [];#Vertices of Rectangular box that encloses object/text ->[[x1,y1],..,[x4,y4]]
+    def __init__(self):
+        self.centerLocation = None; #Center Location in Pixels -> [x,y]
+        self.confidence = None;#Confidence in that word or object identification
+        self.rectangularVertices = [];#Vertices of Rectangular box that encloses object/text ->[[x1,y1],..,[x4,y4]]
 class Google_Word(Google_Data):
     #Includes Google_Data properties -> Center Location, rectangular vertices, confidence
-    wordText = "";#Word that Google is reading
+    def __init__(self):
+        self.wordText = "";#Word that Google is reading
 class Google_Real_Object(Google_Data):
     #Includes Google_Data properties -> Center Location, rectangular vertices, confidence
-    objectDescription = None;#Description of what google Cloud thinks object is    
-    color = None; 
+
+    def __init__(self):
+        self.objectDescription = None;#Description of what google Cloud thinks object is    
+        self.color = None; 
 
 
 class Google_Analysis():
-    imageFile=None;#Image File Name 
+    def __init__(self, imageFile, analyzeText = True, analyzeObjects = True):
+        #Initialize instances:
+        self.real_world_objects = [];#List of Google_Real_Object Objects 
+        self.words = [];#List of Word Objects 
+        self.allText = None;#String containing all text
+        self.allTextConfidence = None;#Confidence in acccuracy of all image text
+        self.imageFile=imageFile;#Image File Name 
 
-    real_world_objects = [];#List of Google_Real_Object Objects 
+        #Get dimensions of image:
+        imgBGR = cv2.imread(imageFile)
+        dimensions = imgBGR.shape
 
-    words = [];#List of Word Objects 
-    allText = None;#String containing all text
-    allTextConfidence = None;#Confidence in acccuracy of all image text
-
-    def __init__(self, imageFile, analyzeText = True, analyzeObjects = True, dimensions=[1920,1080]):
-        self.imageFile=imageFile;
+        #Run Functions:
         if(analyzeObjects): self.AnalyzeObjects(dimensions)
         if(analyzeText): self.AnalyzeText()
     def AnalyzeText(self):
@@ -342,6 +368,8 @@ class Google_Analysis():
         image = vision.Image(content=io.open(self.imageFile, 'rb').read())
         request = vision.AnnotateImageRequest(image=image, features=[vision.Feature(type_=vision.Feature.Type.OBJECT_LOCALIZATION)])
         response = client.annotate_image(request=request)
+
+        #Insert data:
         for real_object in response.localized_object_annotations:
             realWorldObject = Google_Real_Object();
             realWorldObject.confidence=real_object.score
@@ -354,59 +382,96 @@ class Google_Analysis():
             realWorldObject.centerLocation=[xCenter/4,yCenter/4];
             self.real_world_objects.append(realWorldObject)
 class OpenCV_Contour_Data():
-    contourOpenCV = None; #open cv contour
-    centerLocation = None; #Center Location in Pixels -> [x,y]
-    width, height, area = None, None, None; #Details of box that encloses object
-    vertices = [];
-    color = [];
-    shape = None;
-    number = None;
-    cropImgGray = None
-    pixelsInCropImg = None;
-    colorName = None;
-    insideObjects = [];#Open_CV_Analysis Objects from running a crop of contour image
-    centerRealWorld = None;#This will not change unless you change it yourself
+    def __init__(self):
+        self.contourOpenCV = None; #open cv contour
+        self.centerLocation = None; #Center Location in Pixels -> [x,y]
+        self.width, self.height, self.area = None, None, None; #Details of box that encloses object
+        self.vertices = [];
+        self.color = [];
+        self.shape = None;
+        self.number = None;
+        self.cropImgGray = None
+        self.pixelsInCropImg = None;
+        self.colorName = None;
+        self.insideObjects = [];#Open_CV_Analysis Objects from running a crop of contour image
+        self.centerRealWorld = None;#This will not change unless you change it yourself
+
+
+
+class Open_CV_Parameters():
+    def __init__(self):
+        self.colorRecogType = SIMPLE_FAST_COLOR;
+        self.whiteBackground = True;
+
+        #Thresh Image Parameters:
+        self.kSize,self.sigmaX, self.threshType  = (5,5), 0, cv2.THRESH_BINARY | cv2.THRESH_OTSU
+
+        #Finding Contour Parameters:
+        self.cMode, self.cMethod = cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
+
+        #Drawing Contour Parameters:
+        self.contourColor,self.centerColor = (0,255,0), (0,0,255) #default green, red
+
+        #What Functions to Run:
+        self.runThreshImg = True;
+        self.runGetContour = True;
+        self.runDrawContour = True;
+        self.runFindColorContour = True;
+
+
+default_parameters = Open_CV_Parameters()
 
 class Open_CV_Analysis():#Call this to get opencv data for contours in undistorted image
-    contour_objects = [];
-    def __init__(self, imageBGR, colorRecogType = SIMPLE_FAST_COLOR, whiteBackground = True):
+    def __init__(self, imageBGR, analysis_parameters: Open_CV_Parameters =  default_parameters):
 
-        #Store images in different formats:
+        #Initialize contour object lists:
+        self.contour_objects= []
+
+        #Store images in different formats &store parameters for analysis:
         self.imageBGR= imageBGR;
         self.imageHSV = cv2.cvtColor(self.imageBGR, cv2.COLOR_BGR2HSV)
-        self.colorRecogType = colorRecogType;
-        self.whiteBackground = whiteBackground;
+        self.colorRecogType = analysis_parameters.colorRecogType;
+        self.whiteBackground = analysis_parameters.whiteBackground;
+        self.param = analysis_parameters;
 
         #Threshold Image:
-        self.thresholdBGR, self.thresholdGray = self.GetThresholdImage()
+        if (self.param.runThreshImg): self.thresholdBGR, self.thresholdGray = self.GetThresholdImage()
 
         #Get appropiate Contours and their information
-        self.GetContour()
+        if (self.param.runGetContour): self.GetContour()
 
         #Create an image with contours and their centers
-        self.DrawContours()
+        if (self.param.runDrawContour): self.DrawContours()
 
         #Find color for all contours:
-        self.ColorContour()
+        if (self.param.runFindColorContour): self.ColorContour()
 
         
-    def GetThresholdImage(self, kSize = (5,5), sigmaX =0, threshType =  cv2.THRESH_BINARY | cv2.THRESH_OTSU):
+    def GetThresholdImage(self):
         #Necessary Input: undistorted image in BGR Format
         #Other Optional Inputs: parameters to change thresholding
         #Outputs: thresholded image in BGR, thresholded image in gray
         
+        #Parameters for Threshing:
+        kSize, sigmaX, threshType = self.param.kSize, self.param.sigmaX, self.param.threshType
+        
+        #Threshold Images:
         grayImg = cv2.cvtColor(self.imageBGR, cv2.COLOR_BGR2GRAY)
         blurredImg = cv2.GaussianBlur(grayImg, kSize,sigmaX) 
         threshImageGray = cv2.threshold(blurredImg, 0, 255, threshType)[1]
 
-        #Opencv needs black backgroun and white objects, so invert image if needed
+        #Opencv needs black background and white objects, so invert image if needed
         if(self.whiteBackground): threshImageGray = cv2.bitwise_not(threshImageGray)
 
         threshImageBGR = cv2.cvtColor(threshImageGray,cv2.COLOR_GRAY2BGR)
         return threshImageBGR, threshImageGray;
 
-    def GetContour(self, cMode = cv2.RETR_TREE, cMethod = cv2.CHAIN_APPROX_SIMPLE):
+    def GetContour(self):
         #Stores all relevant contours and their properties in contour_objects list
+
+        #Parameters for Threshing:
+        cMode, cMethod = self.param.cMode, self.param.cMethod
+
         #Find Contours:
         contours,_ = cv2.findContours(image=self.thresholdGray, mode=cMode, method=cMethod)
         
@@ -443,7 +508,11 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
 
                 contourNum +=1;
 
-    def DrawContours(self, contourColor=(0,255,0),centerColor = (0,0,255)):
+    def DrawContours(self):
+
+        #Parameters for Threshing:
+        contourColor, centerColor = self.param.contourColor, self.param.centerColor
+
         #Creates an image with all contours and their centers drawn
         self.contourImageBGR = self.imageBGR.copy()
 
@@ -477,30 +546,48 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
         contour_data.vertices = vertices;
         shapeFromVertices(vertices, contour_data)
 
-    def PixelsInContour(self, contour_data:OpenCV_Contour_Data):
-        #Input: Single contour object
+    def PixelsInContour(self):
+        #Input: All contour objects -> Max 255 objects
         #Adds Pixel Locations to object
 
         # Create a mask image that contains the contour filled in
         cimg = np.zeros_like(self.imageBGR)
-
         #cimg = np.full((1080, 1920, 3), 0, dtype=np.int32)
-        allContours = [contourObject.contourOpenCV for contourObject in self.contour_objects]
-        cv2.drawContours(cimg, allContours, contour_data.number, color=255, thickness=-1)
+        
+        #Fill color for each contour starting with 255, 254, 253 ... 
+        colorContour = 255;
+        for contourObject in self.contour_objects:
+            contourObject:OpenCV_Contour_Data
+            #Fill in the contour with specific color
+            cv2.drawContours(cimg, [contourObject.contourOpenCV],0, color=colorContour, thickness=-1)
+            
+            #Crop Image to avoid looking at entire image:
+            cropImgGray = CropImg(contourObject.vertices, cimg)
+            contourObject.cropImgHSV= CropImg(contourObject.vertices, self.imageHSV)
 
-        #cv2.imshow("object{}".format(i+1),cimg)
+            # Look at the HSV crop image ad find where contours are:
+            contourObject.pixelsInCropImg = np.where(cropImgGray == colorContour)
 
-        cropImgGray = CropImg(contour_data.vertices, cimg)
-        contour_data.cropImgHSV= CropImg(contour_data.vertices, self.imageHSV)
-        # Access the image pixels and create a 1D numpy array then add to list
-        contour_data.pixelsInCropImg = np.where(cropImgGray == 255)
+            #Change color:
+            colorContour-=1
+       
+       
+        # allContours = [contourObject.contourOpenCV for contourObject in self.contour_objects]
+        # cv2.drawContours(cimg, allContours, contour_data.number, color=255, thickness=-1)
+
+        # #cv2.imshow("object{}".format(i+1),cimg)
+
+        # cropImgGray = CropImg(contour_data.vertices, cimg)
+        # contour_data.cropImgHSV= CropImg(contour_data.vertices, self.imageHSV)
+        # # Access the image pixels and create a 1D numpy array then add to list
+        # contour_data.pixelsInCropImg = np.where(cropImgGray == 255)
 
         #cv2.drawContours(emptyImg, contours, i, color=0, thickness=-1)#reset
 
     def ColorContour(self):
         #Finds color for each contour depending on the color recognition algo 
         if(self.colorRecogType==SIMPLE_SLOW_COLOR):#Get mean HSV from all pixels in contour
-            for contourObject in self.contour_objects: self.PixelsInContour(contourObject)
+            self.PixelsInContour()
             for contourObject in self.contour_objects: 
                 contourObject.color, contourObject.colorName= MeanHSV(contourObject.pixelsInCropImg[0],contourObject.pixelsInCropImg[1], contourObject.cropImgHSV)
         else:

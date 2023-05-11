@@ -1,4 +1,5 @@
 #Simulate G code: https://nraynaud.github.io/webgcode/
+#Free SVG https://freesvg.org/search/
 import sys
  
 # adding folder to the system path
@@ -8,7 +9,7 @@ import time
 import math 
 from ttgLib.TextToGcode import ttg
 import threading
-import laserGcode as lgs
+import laser_module as l_m
 import math
 
 #Before calling any laser functions, make sure the laser is off already
@@ -302,7 +303,7 @@ if __name__ == "__main__":
 
 
     
-    lgs.gcode_point_creation(coordinateArray,200)#Create gcode with power level 200;
-    runLaser();
+    l_m.gcode_point_creation(coordinateArray,200)#Create gcode with power level 200;
+    #runLaser();
 
 

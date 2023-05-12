@@ -118,7 +118,7 @@ def gcode_point_creation(coorArray,power):
 
 
 
-def modifyGcode(lines, obj_prop:Laser_Object_Properties):
+def ModifyGcode(lines, obj_prop:Laser_Object_Properties):
     
     #Get all movement x, y positions:
     xPos = [float(line[4:line.index(' ', 3)]) for line in lines if line[0]=='G' and line[3]=='X']
@@ -169,19 +169,19 @@ def modifyGcode(lines, obj_prop:Laser_Object_Properties):
 
 
 if __name__ == "__main__":
-    #Get lines from G-code:
-    with open("rotricsGcode/car.gcode", "r") as f: lines = f.readlines()
+    # #Get lines from G-code:
+    # with open("rotricsGcode/car.gcode", "r") as f: lines = f.readlines()
     
-    #Set laser object center, angle, height/width, laser power:
-    dog_laser = Laser_Object_Properties(False,[100,0],50,125,0)
+    # #Set laser object center, angle, height/width, laser power:
+    # dog_laser = Laser_Object_Properties(False,[100,0],50,125,0)
 
-    #Get the modifed G-code with right properties
-    newLines = modifyGcode(lines, dog_laser)
+    # #Get the modifed G-code with right properties
+    # newLines = modifyGcode(lines, dog_laser)
 
-    #Write to file
-    with open("outputGcode.txt", "w") as f:
-        f.writelines(newLines)
-    f.close()
+    # #Write to file
+    # with open("outputGcode.txt", "w") as f:
+    #     f.writelines(newLines)
+    # f.close()
 
     gcode_message_creation("ABC",50,True,200,(0,0))
     # center = (20,30);

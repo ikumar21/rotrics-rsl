@@ -115,16 +115,25 @@ def rectangleFillLaser(cArray:list,rect: Rectangle):
 
 
 def runLaser():
-    laserDexarm = Dexarm(port="COM4")#Open communication with dexarm
-    laserDexarm.go_home()#Initializes Robot
+    #Open communication with dexarm
+    laserDexarm = Dexarm(port="COM4")
+    
+    #Initializes Robot
+    laserDexarm.go_home()
+    
+    #Resets coordinate to dexarm factory setting, home is (0,300)
+    laserDexarm._send_cmd("G92.1\r\n")
 
-    laserDexarm._send_cmd("G92.1\r\n")#Resets coordinate to dexarm factory setting, home is (0,300)
-
+    #Read the gcode:
     with open("outputGcode.txt") as f:
         lines = f.readlines()
-    for x in lines:#Send gcode of the letters:
-        a = x+"\r\n"
-        laserDexarm._send_cmd(a);
+
+    #Send Laser gcode:
+    for x in lines:
+        #Don't send if it's a comment
+        if(x[0]!=";"):
+            a = x+"\r\n"
+            laserDexarm._send_cmd(a);
 
 
 def centerSquares(waferBoard: Wafer_Board):
@@ -290,20 +299,43 @@ def arrangement2(coorArray,waferBoard:Wafer_Board):
     triangleFillLaser(coorArray,Triangle(squareCenters[5][0],5,0.2,0))
 
 
-
-
-if __name__ == "__main__":
+def WaferExample():
     coordinateArray = []
     waferBoard1 = Wafer_Board((0,300),80,4)
     waferBoard2 = Wafer_Board((0,300),75,6)
 
-
     #arrangement1(coordinateArray, waferBoard1);
     arrangement2(coordinateArray, waferBoard2);
-
-
     
     l_m.gcode_point_creation(coordinateArray,200)#Create gcode with power level 200;
     #runLaser();
+
+
+def SvgExample():
+    #Get lines from G-code:
+    with open("rotricsGcode/dog.gcode", "r") as f: dogLines = f.readlines()
+    with open("rotricsGcode/car.gcode", "r") as f: carLines = f.readlines()
+    
+    #Set laser object center, angle, height/width, laser power:
+    dog_laser = l_m.Laser_Object_Properties(fixHeight=False,centerPoint=[0,340],specifiedLength=40,laserPower=125,angle=0)
+
+    car_laser = l_m.Laser_Object_Properties(fixHeight=False,centerPoint=[0,260],specifiedLength=40,laserPower=125,angle=0)
+    
+    #Get the modifed G-code with right properties
+    laserLines = l_m.ModifyGcode(dogLines, dog_laser)
+    laserLines+=l_m.ModifyGcode(carLines, car_laser)
+    
+    #Write to file
+    with open("outputGcode.txt", "w") as f:
+        f.writelines(laserLines)
+    f.close()
+
+
+    runLaser()
+
+
+if __name__ == "__main__":
+    SvgExample();
+    #WaferExample();
 
 

@@ -390,12 +390,14 @@ class OpenCV_Contour_Data():
         self.color = [];
         self.shape = None;
         self.number = None;
-        self.cropImgGray = None
-        self.pixelsInCropImg = None;
+        
+        
         self.colorName = None;
         self.insideObjects = [];#Open_CV_Analysis Objects from running a crop of contour image
         self.centerRealWorld = None;#This will not change unless you change it yourself
-
+        self.cropImgGray = None
+        self.pixelsInCropImg = None;
+        self.cropImgBGR = None;
 
 
 class Open_CV_Parameters():
@@ -446,7 +448,6 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
         #Find color for all contours:
         if (self.param.runFindColorContour): self.ColorContour()
 
-        
     def GetThresholdImage(self):
         #Necessary Input: undistorted image in BGR Format
         #Other Optional Inputs: parameters to change thresholding
@@ -593,8 +594,9 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
         else:
             return 0;
 
-
-
+    def FindCropImgBGR(self):
+        for contour_obj in self.contour_objects:
+            contour_obj.cropImgBGR = CropImg(contour_obj.vertices,self.imageBGR);
 
 
 

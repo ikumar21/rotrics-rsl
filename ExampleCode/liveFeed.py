@@ -86,27 +86,6 @@ while True:
         break
 
 
-    # elif k%256 == 32:
-    #     # SPACE pressed: Look Image
-    #     cv2.destroyWindow("Live Camera")        
-    #     cv2.imshow("Press Space to Save; Press Escape To discard", undistortedImage)
-
-    #     #Wait for user input:
-    #     while True:
-    #         k = cv2.waitKey(1)
-    #         if k%256 == 27 or k%256 == 32:
-    #             cv2.destroyWindow("Press Space to Save; Press Escape To discard")
-    #             if k%256 == 27:
-    #                 # ESC pressed:Go back to live feed
-    #                 print("Escape hit, closing...")
-    #             elif k%256 == 32:
-    #                 # Space pressed:Save Image
-    #                 maxNum = findMaxFileName(directorySaveImage)
-    #                 img_name = "testImages/{}.jpg".format(maxNum+1)
-    #                 cv2.imwrite(img_name, undistortedImage)
-    #                 print("{} written!".format(img_name))
-    #             break
-
 
 
 

@@ -24,18 +24,12 @@ while True:
     undistortedImage = camera0.GetImageBGR(undistorted=False);
 
     #Analyze Image:
-    now_ns = time.time_ns() # Time in nanoseconds
-    start_time = int(now_ns / 1000000) #Time in Milliseconds
 
     #Create Parameters
     parameters = i_m.Open_CV_Parameters()
-    parameters.colorRecogType = i_m.SIMPLE_SLOW_COLOR#Change deafult parameter for color recognition
+    parameters.colorRecogType = i_m.SIMPLE_FAST_COLOR#Change default parameter for color recognition
 
     image_analysis = i_m.Open_CV_Analysis(imageBGR=undistortedImage,analysis_parameters= parameters)
-    now_ns = time.time_ns() # Time in nanoseconds
-    now_ms = int(now_ns / 1000000)
-    print(now_ms-start_time)
-
 
     #Create White Image
     contourImageData = np.zeros([1080,1920,3],dtype=np.uint8)
@@ -49,12 +43,9 @@ while True:
         textString = "Center: "+str(contourObject.centerLocation[0])+", "+str(contourObject.centerLocation[1])+"; Color: "
         textString+=str(contourObject.colorName)+"; Shape: "
         textString+=contourObject.shape
-
         cv2.putText(contourImageData, textString, (centerX - 20, centerY - 20),
             cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2)
 
-    now_ns = time.time_ns() # Time in nanoseconds
-    start_time = int(now_ns / 1000000) #Time in Milliseconds
     
 
     # concatenate actual and Threshold image Horizontally & contour and contour Data Image horziontally
@@ -68,11 +59,6 @@ while True:
     # concatenate 4 images Vertically
     allImages = np.concatenate((actualThreshold, contourData), axis=0)
     
-    now_ns = time.time_ns() # Time in nanoseconds
-    now_ms = int(now_ns / 1000000)
-    print(now_ms-start_time)
-
-
     #Show Live Camera Analysis:
     cv2.imshow("Live Camera", allImages)
 

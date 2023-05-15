@@ -8,6 +8,7 @@ from pydexarm import Dexarm
 
 
 #Go to Rotrics Studio and check port name of dexarm
+
 #Windows: 
 dexarm1 = Dexarm(port="COM6")#Open communication with dexarm
 #Macbook/Linux: dexarm = Dexarm(port="/dev/tty.usbmodem2069397847531")

@@ -6,7 +6,7 @@ import threading
 '''windows'''
 #laserDexarm = Dexarm(port="COM4")
 #Simulate G code: https://nraynaud.github.io/webgcode/
-
+#Create SVg from image: https://picsvg.com
 
 
 class Laser_Object_Properties():

@@ -21,12 +21,13 @@ camera0 = i_m.Camera_Object(cameraNum=0,cameraType=i_m.BIG_CAMERA)
 
 while True:
     #Get undistorted image in BGR Format
-    undistortedImage = camera0.GetImageBGR(undistorted=False);
+    undistortedImage = camera0.GetImageBGR(undistorted=True);
 
     #Analyze Image:
 
     #Create Parameters
     parameters = i_m.Open_CV_Parameters()
+    parameters.whiteBackground=False
     parameters.colorRecogType = i_m.SIMPLE_FAST_COLOR#Change default parameter for color recognition
 
     image_analysis = i_m.Open_CV_Analysis(imageBGR=undistortedImage,analysis_parameters= parameters)

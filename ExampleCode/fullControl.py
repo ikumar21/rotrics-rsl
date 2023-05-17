@@ -40,14 +40,14 @@ import sys
 
 #Open communication with dexarm
 #Windows: 
-dexarm1 = Dexarm(port="COM6")
+dexarm1 = Dexarm(port="COM3")
 
 #First Initialize Dexarm:
 #Factory Settings: Home -> (0,300,0)
 dexarm1.go_home()#Goes to robot home position
 
 
-robotConnectedConveyor = True;
+robotConnectedConveyor = False;
 robotConnectedRail = False;
 
 def robotPrintLocation():
@@ -161,10 +161,8 @@ while True:
             dexarm1._send_cmd("G92 X0 Y0 Z0 E0\r"); #Zeros position
             dexarm1.move_to(e=railStep,feedrate=speedRobot)
             dexarm1._send_cmd("G92.1\r");#Resets to home
-    if keyboard.is_pressed('space'):
-        print("OOOO")
+    if keyboard.is_pressed('space'): 
         if(robotConnectedConveyor):
-            print("hi")
             conveyorMov(beltSpeed, -1)
 
     #Report robot position:

@@ -270,17 +270,12 @@ class Dexarm:
             else:
                 self._send_cmd("M2012 F" + str(speed) + 'D1\r')#Go backward
 
-                #
-                while True:
-                    serial_str = self.ser.readline().decode("utf-8")
-                    if len(serial_str) > 0:
-                        if serial_str.find("ok") > -1:
-                            print("read ok")
-                            break
-            
+            # Start Time in ms
             now_ns = time.time_ns() # Time in nanoseconds
             start_time = int(now_ns / 1000000) #Time in Milliseconds
-            runForMS = round((60.0/speed)*position*1000.0)#How many ms to run for to get right position
+
+            #How many ms to run for to get right position; multiply by 2 because speed is halved 
+            runForMS = 2*round((60.0/speed)*abs(position)*1000.0)
 
             while(True):
                 now_ns = time.time_ns() # Time in nanoseconds

@@ -20,7 +20,22 @@ def initializeRobotArms():
     laserDexarm.go_home()
     sliderDexarm.go_home()
     pickerDexarm.go_home()
+def laserDoorClose():
+    pass
 
+def laserDoorOpen():
+    pass
+
+def laserCoaster():
+    time.sleep(10)
+    pass
+
+def pickerHide(feedrate):
+    #Go to location so laser door doesn't hit arm
+    pickerDexarm.move_to(*c.PICKER_CLEAR,feedrate=feedrate)
+
+def laserHide(feedrate):
+    laserDexarm.move_to(*c.LASER_CLEAR,feedrate=feedrate)
 
 def pickUpNewCoaster(feedrate):
     #Go to new coaster location:
@@ -40,19 +55,6 @@ def dropCoasterLaser(feedrate):
     pickerDexarm.move_to(*c.LASER_DROP_OFF,feedrate=feedrate)
     pickerDexarm.air_picker_stop()
 
-def laserDoorOpen():
-    pass
-
-def pickerHide(feedrate):
-    #Go to location so laser door doesn't hit arm
-    pickerDexarm.move_to(*c.PICKER_CLEAR,feedrate=feedrate)
-
-def laserDoorClose():
-    pass
-
-def laserHide(feedrate):
-    laserDexarm.move_to(*c.LASER_CLEAR,feedrate=feedrate)
-
 def getNewCoaster(feedrate):
     pickUpNewCoaster(feedrate)
     laserDoorOpen()
@@ -60,10 +62,6 @@ def getNewCoaster(feedrate):
     dropCoasterLaser(feedrate)
     pickerHide(feedrate)
     laserDoorClose()
-
-def laserCoaster():
-    time.sleep(10)
-    pass
 
 def CoasterLaser2Conveyor(feedrate):
     #Pick up Coaster
@@ -89,12 +87,37 @@ def conveyorDropOff(feedrate):
     laserHide(feedrate)
     CoasterLaser2Conveyor(feedrate)
 
+def getCoasterDetail(conveyorSpeed,robotFeedrate):
+    #Get Coaster to right frame
+    pickerDexarm.conveyor_belt_move(-200,conveyorSpeed)
+    return "DOG"
+
+
+
+
+
+def coasterContainer(word,feedrate):
+    if word== "DOG":
+        topContainerCoaster(feedrate)
+    elif word =="CAR":
+        bottomContainerCoaster(feedrate)
+
+def topContainerCoaster(feedrate):
+    cLoc = c.CONVEYOR_TOP_CONTAINER
+    sliderDexarm.move_to(cLoc[0],cLoc[1],cLoc[2]+40, feedrate=feedrate)
+    sliderDexarm.move_to(cLoc[0],cLoc[1],cLoc[2], feedrate=feedrate)
+    sliderDexarm.move_to(cLoc[0],cLoc[1]+5,cLoc[2], feedrate=feedrate)
+    sliderDexarm.move_to(cLoc[0],cLoc[1]+150,cLoc[2]-3, feedrate=feedrate)
+
+def bottomContainerCoaster(feedrate):
+    pass
+
+
 
 if __name__ == "__main__":
     initializeRobotArms()
     getNewCoaster(16000)
     laserCoaster()
     conveyorDropOff(16000)
-    pickerDexarm.conveyor_belt_backward(speed=2000)
-    time.sleep(5)
-    pickerDexarm.conveyor_belt_stop()
+    word=getCoasterDetail(4000,2000)
+    #coasterContainer(word,16000)     

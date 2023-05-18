@@ -11,7 +11,7 @@ import glob
 import numpy as np
 import time
 
-imageFiles = glob.glob("testImages/8.jpg");
+imageFiles = glob.glob("testImages/26.jpg");
 
 
 for img_path in imageFiles:

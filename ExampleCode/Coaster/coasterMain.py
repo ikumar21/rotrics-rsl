@@ -3,12 +3,18 @@
 import sys
 # adding folder to the system path
 sys.path.insert(0, '../../')
+sys.path.insert(0, '../../imageFunc')
+sys.path.insert(0, '../../laserFunc')
 import time
 from pydexarm import Dexarm
 import keyboard
 import threading
 import sys
 import constants as c
+import serial
+import image_module as i_m
+import laser_module as l_m
+import cv2
 
 
 
@@ -20,14 +26,29 @@ def initializeRobotArms():
     laserDexarm.go_home()
     sliderDexarm.go_home()
     pickerDexarm.go_home()
-def laserDoorClose():
-    pass
 
+def initializeCamera():
+    global camera0
+    camera0 = i_m.Camera_Object(cameraNum=0,cameraType=i_m.BIG_CAMERA)
+
+def initializeArduino():
+    global laserArduinoSerial
+    laserArduinoSerial = serial.Serial("COM5", 115200, timeout=0.1)
+def laserDoorClose():
+    message = "$C\r\n"
+    laserArduinoSerial.write((bytes(message, 'utf-8')))
+    time.sleep(10)
+    pass
 def laserDoorOpen():
+    message = "$O\r\n"
+    laserArduinoSerial.write((bytes(message, 'utf-8')))
+    time.sleep(10)
     pass
 
 def laserCoaster():
-    time.sleep(10)
+    #dogProp = l_m.Laser_Object_Properties(False,[0,300],60,125,0)
+    l_m.gcode_message_creation("CAR",50,False,200,(0,300))
+    l_m.runLaser(laserDexarm)
     pass
 
 def pickerHide(feedrate):
@@ -87,19 +108,29 @@ def conveyorDropOff(feedrate):
     laserHide(feedrate)
     CoasterLaser2Conveyor(feedrate)
 
+def getWordNow(camera:i_m.Camera_Object):
+    imgWord = camera.GetImageBGR()
+    cv2.imwrite("imageWord.png",imgWord)
+    imgAnalysis = i_m.Google_Analysis("imageWord.png",analyzeText=True,analyzeObjects=False)
+    if(len(imgAnalysis.words)==1):
+        return imgAnalysis.words[0].wordText
+    else:
+        return None
+    
 def getCoasterDetail(conveyorSpeed,robotFeedrate):
     #Get Coaster to right frame
     pickerDexarm.conveyor_belt_move(-200,conveyorSpeed)
-    return "DOG"
+    sliderDexarm.move_to(*c.IMAGE_READ,feedrate= robotFeedrate)
+    return getWordNow(camera=camera0)
 
 
 
 
 
 def coasterContainer(word,feedrate):
-    if word== "DOG":
+    if word== "CAR":
         topContainerCoaster(feedrate)
-    elif word =="CAR":
+    elif word =="DOG":
         bottomContainerCoaster(feedrate)
 
 def topContainerCoaster(feedrate):
@@ -115,9 +146,23 @@ def bottomContainerCoaster(feedrate):
 
 
 if __name__ == "__main__":
+
+    #Initialize:
     initializeRobotArms()
+    initializeArduino()
+    initializeCamera()
+
+    
+    #Pick up new Coaster, open laser door, drop off coaster to laser, Close Laser door
     getNewCoaster(16000)
+
     laserCoaster()
+
+    #Open Laser door, pick up coaster, drop off coaster at Conveyor
     conveyorDropOff(16000)
+
+    # #Analyze Coaster for words
     word=getCoasterDetail(4000,2000)
-    #coasterContainer(word,16000)     
+    print(word)
+    #Put Coaster in right Container
+    coasterContainer(word,16000)     

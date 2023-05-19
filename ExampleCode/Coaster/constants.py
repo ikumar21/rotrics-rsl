@@ -11,8 +11,16 @@ LASER_DROP_OFF = (248,264,-49)
 LASER_PICK_UP = (248,264,-62)
 
 
+
+#Image Analysis:
+
+IMAGE_READ = (0,300,125)
+
+
 #Clear robot:
 
 LASER_CLEAR = (0,180,0)
 
 PICKER_CLEAR = (-152,155,0)
+
+

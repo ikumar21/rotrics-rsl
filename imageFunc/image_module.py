@@ -43,11 +43,14 @@ def setGoogleEnviroment():
         os.system("export GOOGLE_CLOUD_QUOTA_PROJECT=rotricstest")
         os.system("export GOOGLE_APPLICATION_CREDENTIALS=../imageFunc/application_default_credentials.json")
     except:
+        pass
+    try:
         os.system("set PROJECT_ID=rotricstest")
         os.system("set GOOGLE_CLOUD_PROJECT=rotricstest")
         os.system("set GOOGLE_CLOUD_QUOTA_PROJECT=rotricstest")
         os.system(r"set GOOGLE_APPLICATION_CREDENTIALS=C:\Users\rsl\Desktop\rotrics-rsl\imageFunc\application_default_credentials.json")
-
+    except:
+        pass
 setGoogleEnviroment();
 
 #Initializes constants used in module
@@ -62,8 +65,13 @@ def InitializeConstants():
         K = np.load("cImages/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
         D = np.load("cImages/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
     except:
-        K = np.load("../imageFunc/cImages/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
-        D = np.load("../imageFunc/cImages/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+        try:
+            K = np.load("../imageFunc/cImages/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+            D = np.load("../imageFunc/cImages/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+        except:
+            K = np.load("../../imageFunc/cImages/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+            D = np.load("../../imageFunc/cImages/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+
 
     FISHEYE_K1 = D[0][0];
     FISHEYE_K2 = D[1][0];

@@ -1,6 +1,7 @@
 {
     "python.analysis.extraPaths": [
         "./imageFunc",
-        "./imageFunc/OLD"
+        "./imageFunc/OLD",
+        "./laserFunc"
     ]
 }

@@ -168,6 +168,26 @@ def ModifyGcode(lines, obj_prop:Laser_Object_Properties):
     return lines;
 
 
+def runLaser(lasDexarm):
+    
+    #Initializes Robot
+    lasDexarm.go_home()
+    
+    #Resets coordinate to dexarm factory setting, home is (0,300)
+    lasDexarm._send_cmd("G92.1\r\n")
+
+    #Read the gcode:
+    with open("outputGcode.txt") as f:
+        lines = f.readlines()
+
+    #Send Laser gcode:
+    for x in lines:
+        #Don't send if it's a comment
+        if(x[0]!=";"):
+            a = x+"\r\n"
+            lasDexarm._send_cmd(a);
+
+
 if __name__ == "__main__":
     # #Get lines from G-code:
     # with open("rotricsGcode/car.gcode", "r") as f: lines = f.readlines()

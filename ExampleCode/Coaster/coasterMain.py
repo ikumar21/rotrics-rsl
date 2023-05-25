@@ -16,8 +16,6 @@ import image_module as i_m
 import laser_module as l_m
 import cv2
 
-
-
 def initializeRobotArms():
     global laserDexarm, pickerDexarm, sliderDexarm
     laserDexarm = Dexarm(port="COM4")
@@ -26,24 +24,33 @@ def initializeRobotArms():
     laserDexarm.go_home()
     sliderDexarm.go_home()
     pickerDexarm.go_home()
-
 def initializeCamera():
     global camera0
+    i_m.setGoogleEnviroment()
     camera0 = i_m.Camera_Object(cameraNum=0,cameraType=i_m.BIG_CAMERA)
-
 def initializeArduino():
     global laserArduinoSerial
-    laserArduinoSerial = serial.Serial("COM5", 115200, timeout=0.1)
-def laserDoorClose():
+    laserArduinoSerial = serial.Serial("COM7", 115200, timeout=0.1)
+def LaserDoorClose():
     message = "$C\r\n"
     laserArduinoSerial.write((bytes(message, 'utf-8')))
-    time.sleep(10)
-    pass
-def laserDoorOpen():
+
+    #Wait until door is opened:
+    while True:
+        messageIncoming = laserArduinoSerial.readline()
+        if(len(messageIncoming)>0):
+            if(chr(messageIncoming[1])=='D'):
+                break;
+def LaserDoorOpen():
     message = "$O\r\n"
     laserArduinoSerial.write((bytes(message, 'utf-8')))
-    time.sleep(10)
-    pass
+
+    #Wait until door is opened:
+    while True:
+        messageIncoming = laserArduinoSerial.readline()
+        if(len(messageIncoming)>0):
+            if(chr(messageIncoming[1])=='D'):
+                break;
 
 def laserCoaster():
     #dogProp = l_m.Laser_Object_Properties(False,[0,300],60,125,0)
@@ -78,11 +85,11 @@ def dropCoasterLaser(feedrate):
 
 def getNewCoaster(feedrate):
     pickUpNewCoaster(feedrate)
-    laserDoorOpen()
+    LaserDoorOpen()
     laserHide(feedrate)
     dropCoasterLaser(feedrate)
     pickerHide(feedrate)
-    laserDoorClose()
+    LaserDoorClose()
 
 def CoasterLaser2Conveyor(feedrate):
     #Pick up Coaster
@@ -104,7 +111,7 @@ def CoasterLaser2Conveyor(feedrate):
     pickerHide(feedrate)
 
 def conveyorDropOff(feedrate):
-    laserDoorOpen()
+    LaserDoorOpen()
     laserHide(feedrate)
     CoasterLaser2Conveyor(feedrate)
 
@@ -141,7 +148,12 @@ def topContainerCoaster(feedrate):
     sliderDexarm.move_to(cLoc[0],cLoc[1]+150,cLoc[2]-3, feedrate=feedrate)
 
 def bottomContainerCoaster(feedrate):
-    pass
+    cLoc = c.CONVEYOR_BOTTOM_CONTAINER
+    sliderDexarm.move_to(cLoc[0],cLoc[1],cLoc[2]+33, feedrate=feedrate)
+    sliderDexarm.move_to(cLoc[0],cLoc[1],cLoc[2], feedrate=feedrate)
+    #sliderDexarm.move_to(cLoc[0],cLoc[1]+5,cLoc[2], feedrate=feedrate)
+    sliderDexarm.move_to(cLoc[0],cLoc[1]-155,cLoc[2]-3, feedrate=feedrate)
+
 
 
 
@@ -152,10 +164,10 @@ if __name__ == "__main__":
     initializeArduino()
     initializeCamera()
 
-    
     #Pick up new Coaster, open laser door, drop off coaster to laser, Close Laser door
     getNewCoaster(16000)
 
+    #time.sleep(5)
     laserCoaster()
 
     #Open Laser door, pick up coaster, drop off coaster at Conveyor

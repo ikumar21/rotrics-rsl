@@ -11,7 +11,12 @@ import glob
 import numpy as np
 import time
 
-imageFiles = glob.glob("testImages/26.jpg");
+
+now_ns = time.time_ns() # Time in nanoseconds
+start_time = int(now_ns / 1000000) #Time in Milliseconds
+
+
+imageFiles = glob.glob("testImages/36.jpg");
 
 
 for img_path in imageFiles:
@@ -19,12 +24,40 @@ for img_path in imageFiles:
 
     parameters = i_m.Open_CV_Parameters()
     parameters.whiteBackground=False;
+    parameters.runFindColorContour=True;
+    parameters.colorRecogType = i_m.COMPLEX_FAST_COLOR
+    parameters.contourMaxArea=2.64;
+    parameters.contourMinArea=0.05
+    parameters.minEdgePercent=0.03;
     img_data = i_m.Open_CV_Analysis(imgBGR, parameters)
 
     #Create White Image
     contourImageData = np.zeros([1080,1920,3],dtype=np.uint8)
+    contourImageData = np.zeros([508,700,3],dtype=np.uint8)
     contourImageData.fill(255)
 
+    #Go through each contour Object and add info to white Image:
+    for contourObject in img_data.contour_objects:
+        contourObject:i_m.OpenCV_Contour_Data
+        #print(c)
+        cv2.rectangle(img_data.contourImageBGR, (198 - 0*int(contourObject.width/2), 27 - 0*int(contourObject.height/2)), (280+0*contourObject.centerLocation[1]+0 , 95+0*contourObject.centerLocation[1]+0 ), (255,255,255), 2)
+        print(contourObject.number)
+        if(type(contourObject.color[0])==list):
+            for i in range(len(contourObject.color)):
+                print(contourObject.colorName[i],i_m.CorrectHSV(contourObject.color[i]), contourObject.colorCount[i])
+        else:
+            print(contourObject.color)
+        centerX = contourObject.centerLocation[0]
+        centerY = contourObject.centerLocation[1]
+        print(contourObject.width,contourObject.height,contourObject.centerLocation)
+        textString = "Center"+ str(contourObject.number)+": "+str(contourObject.centerLocation[0])
+        textString+=", "+str(contourObject.centerLocation[1])+"; Color: "
+        textString+=str(contourObject.colorName)+"; Shape: "
+        textString+=contourObject.shape
+        cv2.putText(contourImageData, textString, (centerX - 20, centerY - 20),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.3, (0,0,0), 1)
+
+    cv2.imshow("Con", img_data.contourImageBGR)
 
     # concatenate actual and Threshold image Horizontally & contour and contour Data Image horziontally
     smallActualImg = cv2.resize(img_data.imageBGR, (800,450), interpolation = cv2.INTER_AREA)
@@ -34,31 +67,37 @@ for img_path in imageFiles:
     smallContourDataImg = cv2.resize(contourImageData, (800,450), interpolation = cv2.INTER_AREA)
     contourData = np.concatenate((smallContourImg, smallContourDataImg), axis=1)
 
+
+
     # concatenate 4 images Vertically
     allImages = np.concatenate((actualThreshold, contourData), axis=0)
 
     img_data.FindCropImgBGR();
 
     cv2.imshow("Analysis", allImages)
-    for contour_obj in img_data.contour_objects:
-        cropInnerImg = contour_obj.cropImgBGR;
-        cv2.imshow("Crop",cropInnerImg)
+    
 
-        parameters.whiteBackground=True;
-        innerImg_data = i_m.Open_CV_Analysis(cropInnerImg,parameters)
+    # for contour_obj in img_data.contour_objects:
+    #     cropInnerImg = contour_obj.cropImgBGR;
+    #     cv2.imshow("Crop",cropInnerImg)
 
-        #Create White Image
-        contourImageData = np.zeros([1080,1920,3],dtype=np.uint8)
-        contourImageData.fill(255)
+    #     parameters.whiteBackground=True;
+    #     innerImg_data = i_m.Open_CV_Analysis(cropInnerImg,parameters)
 
-        cv2.imshow("Inner Thresh analysis", innerImg_data.thresholdBGR)
-        cv2.imshow("Inner analysis", innerImg_data.contourImageBGR)
-        #cv2.imshow("Inner analysis", innerImg_data.thresholdBGR)
+    #     #Create White Image
+    #     contourImageData = np.zeros([1080,1920,3],dtype=np.uint8)
+    #     contourImageData.fill(255)
 
+    #     cv2.imshow("Inner Thresh analysis", innerImg_data.thresholdBGR)
+    #     cv2.imshow("Inner analysis", innerImg_data.contourImageBGR)
+    #     #cv2.imshow("Inner analysis", innerImg_data.thresholdBGR)
 
-        while True:
-            k = cv2.waitKey(10)
-            # ESC pressed:Exit Program
-            if k%256 == 27:
-                print("Escape hit, closing...")
-                break
+    now_ns = time.time_ns() # Time in nanoseconds
+    stop_time = int(now_ns / 1000000) #Time in Milliseconds
+    print(stop_time-start_time)
+    while True:
+        k = cv2.waitKey(10)
+        # ESC pressed:Exit Program
+        if k%256 == 27:
+            print("Escape hit, closing...")
+            break

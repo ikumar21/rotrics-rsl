@@ -11,23 +11,31 @@ import io
 from statistics import mean
 from scipy.optimize import fsolve
 import math
+import time
 
 #Google Cloud Setup:
 
 #Terminal (Download Library): pip3 install --upgrade google-cloud-vision
 
 #Macbook: Enter in Terminal
-# export PROJECT_ID=rotricstest
-# export GOOGLE_CLOUD_PROJECT=rotricstest
-# export GOOGLE_CLOUD_QUOTA_PROJECT=rotricstest
-# export GOOGLE_APPLICATION_CREDENTIALS=../imageFunc/application_default_credentials.json
+"""
+export PROJECT_ID=rotricstest
+export GOOGLE_CLOUD_PROJECT=rotricstest
+export GOOGLE_CLOUD_QUOTA_PROJECT=rotricstest
+export GOOGLE_APPLICATION_CREDENTIALS=../imageFunc/application_default_credentials.json
+
+"""
 
 #Windows Terminal: Everything above(replace export with set)
 #also change last Command: 
-# set PROJECT_ID=rotricstest
-# set GOOGLE_CLOUD_PROJECT=rotricstest
-# set GOOGLE_CLOUD_QUOTA_PROJECT=rotricstest
-# set GOOGLE_APPLICATION_CREDENTIALS=C:\Users\rsl\Desktop\rotrics-rsl\imageFunc\application_default_credentials.json
+r"""
+set PROJECT_ID=rotricstest
+set GOOGLE_CLOUD_PROJECT=rotricstest
+set GOOGLE_CLOUD_QUOTA_PROJECT=rotricstest
+set GOOGLE_APPLICATION_CREDENTIALS=C:\Users\rsl\Desktop\rotrics-rsl\imageFunc\application_default_credentials.json
+"""
+
+
 
 
 
@@ -193,7 +201,7 @@ def ColorRecog(hsv):
 def MeanHSV(yPixelLocationsArr,xPixelLocationsArr, imgHSV):
         #Gives mean HSV for the pixel locations and their color name
         #imgHSV[yPixelLocation][xPixelLocation]= [H,S,V]
-        #Outputs corrected color in HSV and and color Name
+        #Outputs color in HSV (opencv format) (0-255,0-255,0-255) and and color Name
         
         #IF input is empty ->returns None
         if(len(yPixelLocationsArr)==0):
@@ -204,6 +212,81 @@ def MeanHSV(yPixelLocationsArr,xPixelLocationsArr, imgHSV):
         avgV = mean([float(imgHSV[yPixelLocationsArr[indexPixel]][xPixelLocationsArr[indexPixel]][2]) for indexPixel in range(len(yPixelLocationsArr))])
         colorHSV = [avgH,avgS,avgV];
         return colorHSV, ColorRecog(CorrectHSV(colorHSV))
+
+def MultipleMeanHSV(yPixelLocationsArr,xPixelLocationsArr, imgHSV):
+        #Looks at all HSV values in pixels and sorts them
+        #Then gives the different colors and their color name
+        #imgHSV[yPixelLocation][xPixelLocation]= [H,S,V]
+        #Outputs color in HSV (opencv format) (0-179,0-255,0-255) and and color Name
+        
+        allHSV = [];
+        countHSV = [];
+        #IF input is empty ->returns None
+        if(len(yPixelLocationsArr)==0):
+            return None, None;
+
+        #Look at each HSV Value, 
+        #If a value within 5% hsv range of another value -> avg, otherwise make it new entry
+
+
+        everyXPixel = 5;
+        for indexPixel in range(int(len(yPixelLocationsArr)/everyXPixel)):
+            indexPixel=indexPixel*everyXPixel;
+            #Get Pixel HSV
+            pixelH = imgHSV[yPixelLocationsArr[indexPixel]][xPixelLocationsArr[indexPixel]][0]
+            pixelS = imgHSV[yPixelLocationsArr[indexPixel]][xPixelLocationsArr[indexPixel]][1]
+            pixelV = imgHSV[yPixelLocationsArr[indexPixel]][xPixelLocationsArr[indexPixel]][2]
+            
+            lowH = pixelH-10;
+            highH = pixelH+10;
+            lowS = pixelS-15;
+            highS = pixelS+15;
+            lowV = pixelV-15;
+            highV = pixelV+15;
+
+            #See if there is a color that is close to pixel HSV:
+            closeColor = False;
+            for color in allHSV:
+                if(lowH<=color[0]<=highH):
+                    if(lowS<=color[1]<=highS):
+                        if(lowV<=color[2]<=highV):
+                            #There is a close HSV value, now avg and increase count
+                            indexColor = allHSV.index(color)
+                            count = countHSV[indexColor];
+                            newH = (allHSV[indexColor][0]*1.0*count+pixelH*1.0)/(count*1.0+1.0)
+                            newS = (allHSV[indexColor][1]*1.0*count+pixelS*1.0)/(count*1.0+1.0)
+                            newV = (allHSV[indexColor][2]*1.0*count+pixelV*1.0)/(count*1.0+1.0)
+                            allHSV[indexColor] = [newH,newS,newV]
+                            countHSV[indexColor]+=1;
+                            closeColor = True;
+                            break;
+            
+            if(closeColor==False):
+                #Add HSV if no other values close to it
+                allHSV.append([pixelH,pixelS,pixelV])
+                countHSV.append(1)
+       
+
+        #Remove any colors that barely appear
+        # numberPixels = sum(countHSV)
+        # correctIndexes = []
+        # for i in range(len(countHSV)):
+        #     if(countHSV[i]>=numberPixels*0.01):
+        #         correctIndexes.append(i);
+        # allHSV = [allHSV[i] for i in correctIndexes];
+        # countHSV = [countHSV[i] for i in correctIndexes]
+
+        #Find the Color Name of each unique HSV
+        allColorName = []
+        for colorHSV in allHSV:
+            allColorName.append(ColorRecog(CorrectHSV(colorHSV)))
+        
+        return allHSV,allColorName,countHSV
+
+
+
+
+
 
 def HSV2_BGR(colorHSV):
     colorImg = np.uint8([[colorHSV]]) 
@@ -419,8 +502,18 @@ class Open_CV_Parameters():
         #Finding Contour Parameters:
         self.cMode, self.cMethod = cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
 
+        #Choosing Contour only within certain size/area (%):
+        self.contourMaxArea = 95
+        self.contourMinArea = 0.3
+                
+        #Finding Edges based on length relative to perimeter:
+        self.minEdgePercent = 0.05; 
+
         #Drawing Contour Parameters:
         self.contourColor,self.centerColor = (0,255,0), (0,0,255) #default green, red
+
+
+        
 
         #What Functions to Run:
         self.runThreshImg = True;
@@ -496,7 +589,7 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
             contourPercentage = 100.0*(area)/(dimensions[0]*dimensions[1]*1.0)
             
             #Ignore huge or very small contours
-            if(0.3<=contourPercentage<=95):
+            if(self.param.contourMinArea<=contourPercentage<=self.param.contourMaxArea):
                 #Create contour Object:
                 contour_data = OpenCV_Contour_Data()
                 self.contour_objects.append(contour_data)
@@ -531,11 +624,14 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
 
         #Draw center for each contour on the image
         for contourObject in self.contour_objects:
-            centerX = contourObject.centerLocation[0]
-            centerY = contourObject.centerLocation[1]
-            cv2.circle(self.contourImageBGR, contourObject.centerLocation, 7, centerColor, -1)
-            cv2.putText(self.contourImageBGR, "Center_"+str(contourObject.number), (centerX - 20, centerY - 20),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.5, centerColor, 2)
+            if(contourObject.centerLocation!= None):
+                centerX = contourObject.centerLocation[0]
+                centerY = contourObject.centerLocation[1]
+                cv2.circle(self.contourImageBGR, contourObject.centerLocation, 7, centerColor, -1)
+                cv2.putText(self.contourImageBGR, "Center_"+str(contourObject.number), (centerX - 20, centerY - 20),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, centerColor, 2)
+            else:
+                print(contourObject.number, contourObject.area)
 
     def ShapeContour(self, contour_data):
         #Input: single contour object 
@@ -543,15 +639,21 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
  
         def shapeFromVertices(vertices, contour_data):
             numVertices = len(vertices);
+
             if(numVertices==3):
                 contour_data.shape = "TRIANGLE"
             elif(numVertices==4):
                 contour_data.shape = "RECTANGLE"
+            elif(numVertices==5):
+                contour_data.shape = "PENTAGON"
+            elif(numVertices==10):
+                contour_data.shape = "STAR"
+            
             else:
                 contour_data.shape =str(numVertices)+" EDGES"
 
         perimeter = cv2.arcLength(contour_data.contourOpenCV, True)
-        vertices = cv2.approxPolyDP(contour_data.contourOpenCV, 0.04 * perimeter, True);
+        vertices = cv2.approxPolyDP(contour_data.contourOpenCV, self.param.minEdgePercent * perimeter, True);
         contour_data.vertices = vertices;
         shapeFromVertices(vertices, contour_data)
 
@@ -592,6 +694,25 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
         # contour_data.pixelsInCropImg = np.where(cropImgGray == 255)
 
         #cv2.drawContours(emptyImg, contours, i, color=0, thickness=-1)#reset
+    def PixelsInEnclosingRec(self):
+        #Get all pixels in enclosing rectangle and store it
+        #contourObject.pixelsInCropImg=[yPixelLocationsArr,xPixelLocationsArr]
+        yPixelLocationsArr = []
+        xPixelLocationsArr = []
+        for contourObject in self.contour_objects:
+            contourObject:OpenCV_Contour_Data
+            yPixelLocationsArr = []
+            xPixelLocationsArr = []
+            pixelYLoc = contourObject.centerLocation[1] - int(contourObject.height/2) 
+            while(pixelYLoc <= contourObject.centerLocation[1] + int(contourObject.height/2)):
+                pixelXLoc = contourObject.centerLocation[0] - int(contourObject.width/2) 
+                while(pixelXLoc <= contourObject.centerLocation[0] +int(contourObject.width/2)):
+                    yPixelLocationsArr.append(pixelYLoc)
+                    xPixelLocationsArr.append(pixelXLoc)                    
+                    pixelXLoc+=1
+                pixelYLoc+=1;
+            print("MAX",max(yPixelLocationsArr),max(xPixelLocationsArr), contourObject.centerLocation[0] +int(contourObject.width/2))
+            contourObject.pixelsInRecImg=[yPixelLocationsArr,xPixelLocationsArr]
 
     def ColorContour(self):
         #Finds color for each contour depending on the color recognition algo 
@@ -599,6 +720,24 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
             self.PixelsInContour()
             for contourObject in self.contour_objects: 
                 contourObject.color, contourObject.colorName= MeanHSV(contourObject.pixelsInCropImg[0],contourObject.pixelsInCropImg[1], contourObject.cropImgHSV)
+                #contourObject.color = [round(color[0],1),round(color[1],1),round(color[2],1)]
+        elif(self.colorRecogType==COMPLEX_SLOW_COLOR):
+            self.PixelsInContour()
+            now_ns = time.time_ns() # Time in nanoseconds
+            start_time = int(now_ns / 1000000) #Time in Milliseconds
+            for contourObject in self.contour_objects: 
+                contourObject.color, contourObject.colorName, contourObject.colorCount= MultipleMeanHSV(contourObject.pixelsInCropImg[0],contourObject.pixelsInCropImg[1], contourObject.cropImgHSV)
+            now_ns = time.time_ns() # Time in nanoseconds
+            stop_time = int(now_ns / 1000000) #Time in Milliseconds
+            print("Func Time",stop_time-start_time)
+        elif(self.colorRecogType==SIMPLE_FAST_COLOR):
+            self.PixelsInEnclosingRec()
+            for contourObject in self.contour_objects: 
+                contourObject.color, contourObject.colorName= MeanHSV(contourObject.pixelsInRecImg[0],contourObject.pixelsInRecImg[1], self.imageHSV)
+        elif(self.colorRecogType==COMPLEX_FAST_COLOR):
+            self.PixelsInEnclosingRec()
+            for contourObject in self.contour_objects: 
+                contourObject.color, contourObject.colorName,contourObject.colorCount= MultipleMeanHSV(contourObject.pixelsInRecImg[0],contourObject.pixelsInRecImg[1], self.imageHSV)
         else:
             return 0;
 

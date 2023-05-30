@@ -322,7 +322,7 @@ class Google_Real_Object(Google_Data):
         self.objectDescription = None;#Description of what google Cloud thinks object is    
         self.color = None; 
 
-
+  
 class Google_Analysis():
     def __init__(self, imageFile, analyzeText = True, analyzeObjects = True):
         #Initialize instances:

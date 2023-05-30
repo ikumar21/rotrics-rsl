@@ -1,62 +1,27 @@
 from pydexarm import Dexarm
-#import time
-#from random import randint
 import numpy as np
 import math
 from scipy.stats import gmean
 from scipy.optimize import minimize
 from statistics import mean
-
 import sys
+import cv2
+import image_moduleTest as img_m
+
 # adding folder to the system path
 sys.path.insert(0, '../Test')
 
-import numpy as np
-#import os
-#import glob
-import cv2
-#from google.cloud import vision
-#import io
-#from statistics import mean
-#from scipy.optimize import fsolve
-#import math
 
-import image_moduleTest as img_m
 
+
+# setup arm for testing
 dexarm = Dexarm(port="COM6")
 
-#dexarm.go_home()
-dexarm.move_to(None,None,50)#150
+dexarm.go_home()
+dexarm.move_to(None,None,100)#150
 
 
-def sort_counterclockwise(points, centre):
-  centre_x, centre_y = sum([x for x,_ in points])/len(points), sum([y for _,y in points])/len(points)
-  angles = [math.atan2(y - centre_y, x - centre_x) for x,y in points]
-  counterclockwise_indices = sorted(range(len(points)), key=lambda i: angles[i])
-  counterclockwise_points = [points[i] for i in counterclockwise_indices]
-  return counterclockwise_points
 
-def shoelace(x_y):
-    x_y = np.array(x_y)
-    x_y = x_y.reshape(-1,2)
-
-    x = x_y[:,0]
-    y = x_y[:,1]
-
-    S1 = np.sum(x*np.roll(y,-1))
-    S2 = np.sum(y*np.roll(x,-1))
-
-    area = .5*np.absolute(S1 - S2)
-
-    return area
-
-def auto_canny_edge_detection(image, sigma=0.33):
-    md = np.median(image)
-    lower_value = int(max(0, (1.0-sigma) * md))
-    upper_value = int(min(255, (1.0+sigma) * md))
-    print(lower_value,upper_value)
-    print(md)
-    return cv2.Canny(image, lower_value, upper_value)
 
 
 cam = cv2.VideoCapture(0)
@@ -66,20 +31,19 @@ cam.release()
 
 if (img.shape[0] == 480):
     dim = img.shape
-    print("640x480")
+    #print("640x480")
 
 # 640*480 Small Camera:
 CAMERA_SMALL_MATRIX = np.array([[7.9641507015667764e+02,0.,3.1577913194699374e+02],[0.,7.9661307355876215e+02, 2.1453452136833957e+02],[0.,0.,1.]])
 DIST_COEFF_SMALL = np.array([[-1.1949335317713690e+00,1.8078010700662486e+00,4.9410258870084744e-03,2.8036176641915598e-03,-2.0575845684235938e+00]])
 
+
 img = cv2.undistort(img, CAMERA_SMALL_MATRIX, DIST_COEFF_SMALL, None)
-#cv2.imwrite("test.png", undistortedImg)
+imgHSV = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
 
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 blur = cv2.GaussianBlur(gray,(5,5),0) 
-#thresh = cv2.threshold(blur,127,255,cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]#127,255
 thresh = cv2.adaptiveThreshold(blur,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY_INV,51,7)#7,7
-#thresh = auto_canny_edge_detection(blur)
 
 #show image until user presses ESC:
 while True:
@@ -88,73 +52,96 @@ while True:
     if k%256 == 27:
         break
 
-
-#thresh = cv2.bitwise_not(thresh)
-
-#grayImg = cv2.cvtColor(self.imageBGR, cv2.COLOR_BGR2GRAY)
-#blurredImg = cv2.GaussianBlur(grayImg, kSize,sigmaX) 
-#threshImageGray = cv2.threshold(blurredImg, 0, 255, threshType)[1]
-
-#thresh = cv2.bitwise_not(thresh)
-
 contours,hierarchy = cv2.findContours(thresh,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-#print(hierarchy[0])
+
+list = []
 
 disp = img
 for i in range(1,len(contours)):
     approx = cv2.approxPolyDP(contours[i], 0.01 * cv2.arcLength(contours[i],True),True)
-    #approx = contours[i]
-    #cv2.drawContours(disp,[contours[i]],0,(0,0,255),3)
-    
     Ai = cv2.contourArea(approx)
-    print(Ai)
     
     contourPercentage = 100*Ai/(dim[0]*dim[1])
     if contourPercentage >= 95 or contourPercentage <= 0.3:
-        print(contourPercentage)
         continue
+
+    listi = [None] * 10
 
     Rcenter,Rdim,Rang = cv2.minAreaRect(approx)
     Ccenter,Crad = cv2.minEnclosingCircle(approx)
-    TA,Tpnts = cv2.minEnclosingTriangle(approx)
 
+    TA,Tpnts = cv2.minEnclosingTriangle(approx)
     RA = Rdim[0]*Rdim[1]
     CA = np.pi*Crad**2
 
     error = [abs(Ai-RA)/Ai*100,abs(Ai-TA)/Ai*100,abs(Ai-CA)/Ai*100]
-    print(error)
 
     if error[0] < error[1] and error[0] < error[2]:
+        listi[0] = 'Square'
+        listi[1] = round(Rang,2)
+
         rect = cv2.boxPoints(cv2.minAreaRect(approx))
         rect = np.int0(rect)
         
+        cv2.circle(disp,np.int0(Rcenter),0,(0,0,255),2)
         cv2.drawContours(disp,[rect],0,(0,0,255),2)
-        cv2.putText(disp,'S',np.int0(Rcenter),cv2.FONT_HERSHEY_SIMPLEX,0.6,(255,255,255),2)
     elif error[1] < error[0] and error[1] < error[2]:
+        listi[0] = 'Triangle'
+        listi[1] = round(Rang,2)
+
         Tcenter = [np.sum(Tpnts[:,:,0])/3,np.sum(Tpnts[:,:,1])/3]
 
+        cv2.circle(disp,np.int0(Tcenter),0,(0,0,255),2)
         cv2.drawContours(disp,[np.int0(Tpnts[:,0,:])],0,(0,0,255),2)
-        cv2.putText(disp,'T',np.int0(Tcenter),cv2.FONT_HERSHEY_SIMPLEX,0.6,(255,255,255),2)
     else:
-        cv2.putText(disp,'C',np.int0(Ccenter),cv2.FONT_HERSHEY_SIMPLEX,0.6,(255,255,255),2)
+        listi[0] = 'Circle'
+        listi[1] = 0
+
+        cv2.circle(disp,np.int0(Ccenter),0,(0,0,255),2)
         cv2.circle(disp,np.int0(Ccenter),np.int0(Crad),(0,0,255),2)
     
-    
+    print(Ccenter)
+
+    color = []
+    cnt = 0
+    for j in range(2,5):
+        for q in range(0,33):
+            stp = 2*np.pi/30
+            x = int(Crad/j * np.cos(q*stp) + Ccenter[1])
+            y = int(Crad/j * np.sin(q*stp) + Ccenter[0])
+
+            if x <= 0 or x >= dim[0]:
+                continue
+            if y <= 0 or y >= dim[1]:
+                continue
+
+            color.append(np.int0(imgHSV[x,y]))
+            cnt = cnt + 1
+    color = np.array(color)
+
+    print(color)
+
+    mnHSV = np.zeros(3)
+    for j in range(0,3):
+        mn = np.mean(color[:,j])
+        sd = np.std(color[:,j])
+        
+        color = np.delete(color, np.where(color[:,j] > mn+2*sd),axis=0)
+        color = np.delete(color, np.where(color[:,j] < mn-2*sd),axis=0)
+        
+        mnHSV[j] = round(np.mean(color[:,j]),2)
+
+    listi[2] = mnHSV
 
 
-    #M = cv2.moments(contour)
-    #if M['m00'] != 0.0:
-    #    x = int(M['m10']/M['m00'])
-    #    y = int(M['m01']/M['m00'])
-    #if len(approx) == 1:
-    #    cv2.putText(disp,'Crc',(x,y),cv2.FONT_HERSHEY_SIMPLEX,0.6,(255,255,255),2)
-    #if len(approx) == 4:
-    #    cv2.putText(disp,'Sqr',(x,y),cv2.FONT_HERSHEY_SIMPLEX,0.6,(255,255,255),2)
-    #if len(approx) == 3:
-    #    cv2.putText(disp,'Tri',(x,y),cv2.FONT_HERSHEY_SIMPLEX,0.6,(255,255,255),2)
+    list.append(listi)
 
 
-#print(rect)
+
+
+for i in range(0,len(list)):
+    print(list[i])
+
 
 
 #show image until user presses ESC:
@@ -164,7 +151,8 @@ while True:
     if k%256 == 27:
         break
 
-#cv2.minEnclosingTriangle(approx)
+
+
 
 
 

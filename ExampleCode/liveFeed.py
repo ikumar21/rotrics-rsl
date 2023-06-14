@@ -4,17 +4,13 @@
 
 import sys
 import os
-# adding folder to the system path
-sys.path.insert(0, '../imageFunc')
-sys.path.insert(0, '../')
-#sys.path.insert(0, 'C:/Users/rsl/Desktop/rotrics-rsl/imageFunc')
+
+sys.path.insert(0, 'ImageModule')
 import image_module as i_m
 import cv2
 import glob
 import numpy as np
 import time
-
-
 
 #Start up camera
 camera0 = i_m.Camera_Object(cameraNum=0,cameraType=i_m.BIG_CAMERA)

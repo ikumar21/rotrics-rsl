@@ -2,8 +2,8 @@
 import sys
 import os
 # adding folder to the system path
-sys.path.insert(0, '../imageFunc')
-sys.path.insert(0, '../')
+sys.path.insert(0, 'ImageModule')
+# sys.path.insert(0, '../')
 #sys.path.insert(0, 'C:/Users/rsl/Desktop/rotrics-rsl/imageFunc')
 import image_module as i_m
 import cv2
@@ -16,12 +16,13 @@ now_ns = time.time_ns() # Time in nanoseconds
 start_time = int(now_ns / 1000000) #Time in Milliseconds
 
 
+
 imageFiles = glob.glob("testImages/36.jpg");
 
 
 for img_path in imageFiles:
     imgBGR = cv2.imread(img_path)
-
+    
     parameters = i_m.Open_CV_Parameters()
     parameters.whiteBackground=False;
     parameters.runFindColorContour=True;

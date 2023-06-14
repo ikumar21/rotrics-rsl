@@ -59,7 +59,7 @@ def setGoogleEnviroment():
         os.system(r"set GOOGLE_APPLICATION_CREDENTIALS=C:\Users\rsl\Desktop\rotrics-rsl\imageFunc\application_default_credentials.json")
     except:
         pass
-setGoogleEnviroment();
+# setGoogleEnviroment();
 
 #Initializes constants used in module
 def InitializeConstants():
@@ -69,16 +69,22 @@ def InitializeConstants():
     
     #1920*1080 camera:
     #Import Undistortion constants
-    try:
-        K = np.load("cImages/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
-        D = np.load("cImages/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
-    except:
-        try:
-            K = np.load("../imageFunc/cImages/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
-            D = np.load("../imageFunc/cImages/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
-        except:
-            K = np.load("../../imageFunc/cImages/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
-            D = np.load("../../imageFunc/cImages/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+    K = np.array([[1.08257559e+03, 0.00000000e+00, 9.72497246e+02],
+       [0.00000000e+00, 1.08077869e+03, 5.48779482e+02],
+       [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
+    D = np.array([[-0.09591922],[-0.03262541],[ 0.03432325],[-0.01535015]])
+    # print(K)
+    # print(D)
+    # try:
+    #     K = np.load("ImageModule/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+    #     D = np.load("ImageModule/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+    # except:
+    #     try:
+    #         K = np.load("../imageFunc/cImages/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+    #         D = np.load("../imageFunc/cImages/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+    #     except:
+    #         K = np.load("../../imageFunc/cImages/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+    #         D = np.load("../../imageFunc/cImages/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
 
 
     FISHEYE_K1 = D[0][0];

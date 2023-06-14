@@ -5,13 +5,17 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
             "name": "Python: Current File",
             "type": "python",
-            "request": "launch",
             "program": "${file}",
+            "request": "launch",
             "console": "integratedTerminal",
-            "cwd" : "$C:/Users/rsl/Desktop/rotrics-rsl/imageFunc",
-            "justMyCode": true
+            "justMyCode": true,
+            "purpose": ["debug-in-terminal"],
+            "args": ["run","--no-debugger"]
         }
     ]
 }

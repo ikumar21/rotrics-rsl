@@ -1,5 +1,7 @@
 {
     "python.analysis.extraPaths": [
-        "./ImageModule"
+        "./ImageModule",
+        "./LaserModule",
+        "./MovementModule"
     ]
 }

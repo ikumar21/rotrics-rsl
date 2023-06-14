@@ -32,7 +32,7 @@ r"""
 set PROJECT_ID=rotricstest
 set GOOGLE_CLOUD_PROJECT=rotricstest
 set GOOGLE_CLOUD_QUOTA_PROJECT=rotricstest
-set GOOGLE_APPLICATION_CREDENTIALS=C:\Users\rsl\Desktop\rotrics-rsl\imageFunc\application_default_credentials.json
+set GOOGLE_APPLICATION_CREDENTIALS=C:\Users\rsl\Desktop\rotrics-rsl\ImageModule\Cloud_Credentials.json
 """
 
 
@@ -73,18 +73,21 @@ def InitializeConstants():
        [0.00000000e+00, 1.08077869e+03, 5.48779482e+02],
        [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
     D = np.array([[-0.09591922],[-0.03262541],[ 0.03432325],[-0.01535015]])
-    # print(K)
-    # print(D)
-    # try:
-    #     K = np.load("ImageModule/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
-    #     D = np.load("ImageModule/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
-    # except:
-    #     try:
-    #         K = np.load("../imageFunc/cImages/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
-    #         D = np.load("../imageFunc/cImages/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
-    #     except:
-    #         K = np.load("../../imageFunc/cImages/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
-    #         D = np.load("../../imageFunc/cImages/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+    """
+    print(K)
+    print(D)
+    try:
+        K = np.load("ImageModule/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+        D = np.load("ImageModule/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+    except:
+        try:
+            K = np.load("../imageFunc/cImages/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+            D = np.load("../imageFunc/cImages/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+        except:
+            K = np.load("../../imageFunc/cImages/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+            D = np.load("../../imageFunc/cImages/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
+
+    """
 
 
     FISHEYE_K1 = D[0][0];

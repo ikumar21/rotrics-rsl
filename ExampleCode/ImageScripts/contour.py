@@ -1,10 +1,12 @@
 #Analyze image with image module
 import sys
 import os
-# adding folder to the system path
+# Add Image Module
 sys.path.insert(0, 'ImageModule')
-# sys.path.insert(0, '../')
-#sys.path.insert(0, 'C:/Users/rsl/Desktop/rotrics-rsl/imageFunc')
+
+# #Add Access to test images
+# sys.path.insert(1, 'ExampleCode/ImageScripts/testImages')
+
 import image_module as i_m
 import cv2
 import glob
@@ -15,12 +17,15 @@ import time
 now_ns = time.time_ns() # Time in nanoseconds
 start_time = int(now_ns / 1000000) #Time in Milliseconds
 
+print(now_ns)
 
 
-imageFiles = glob.glob("testImages/36.jpg");
+
+imageFiles = glob.glob("ExampleCode/ImageScripts/testImages/36.jpg");
 
 
 for img_path in imageFiles:
+    print(img_path)
     imgBGR = cv2.imread(img_path)
     
     parameters = i_m.Open_CV_Parameters()

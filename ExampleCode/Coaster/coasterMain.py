@@ -1,10 +1,12 @@
 #Coaster Line Script
-
 import sys
-# adding folder to the system path
-sys.path.insert(0, '../../')
-sys.path.insert(0, '../../imageFunc')
-sys.path.insert(0, '../../laserFunc')
+
+#Adding Modules to the system path
+sys.path.insert(0, 'ImageModule')
+sys.path.insert(0, 'LaserModule')
+sys.path.insert(0, 'MovementModule')
+
+
 import time
 from pydexarm import Dexarm
 import keyboard
@@ -30,9 +32,9 @@ def initializeCamera():
     camera0 = i_m.Camera_Object(cameraNum=0,cameraType=i_m.BIG_CAMERA)
 def initializeArduino():
     global laserArduinoSerial
-    laserArduinoSerial = serial.Serial("COM7", 115200, timeout=0.1)
+    laserArduinoSerial = serial.Serial("COM7", 115200, timeout=0.2)
 def LaserDoorClose():
-    message = "$C\r\n"
+    message = "$C\n"
     laserArduinoSerial.write((bytes(message, 'utf-8')))
 
     #Wait until door is opened:
@@ -42,13 +44,15 @@ def LaserDoorClose():
             if(chr(messageIncoming[1])=='D'):
                 break;
 def LaserDoorOpen():
-    message = "$O\r\n"
+    message = "$O\n"
+    laserArduinoSerial.write(message.encode())
+    print("send")
     laserArduinoSerial.write((bytes(message, 'utf-8')))
-
     #Wait until door is opened:
     while True:
         messageIncoming = laserArduinoSerial.readline()
         if(len(messageIncoming)>0):
+            print(messageIncoming)
             if(chr(messageIncoming[1])=='D'):
                 break;
 
@@ -159,22 +163,27 @@ def bottomContainerCoaster(feedrate):
 
 if __name__ == "__main__":
 
-    #Initialize:
-    initializeRobotArms()
     initializeArduino()
-    initializeCamera()
+    time.sleep(3)
+    LaserDoorOpen();
+    time.sleep(5);
+    LaserDoorClose();
+    # #Initialize:
+    # initializeRobotArms()
+    # initializeArduino()
+    # initializeCamera()
 
-    #Pick up new Coaster, open laser door, drop off coaster to laser, Close Laser door
-    getNewCoaster(16000)
+    # #Pick up new Coaster, open laser door, drop off coaster to laser, Close Laser door
+    # getNewCoaster(16000)
 
-    #time.sleep(5)
-    laserCoaster()
+    # #time.sleep(5)
+    # laserCoaster()
 
-    #Open Laser door, pick up coaster, drop off coaster at Conveyor
-    conveyorDropOff(16000)
+    # #Open Laser door, pick up coaster, drop off coaster at Conveyor
+    # conveyorDropOff(16000)
 
-    # #Analyze Coaster for words
-    word=getCoasterDetail(4000,2000)
-    print(word)
-    #Put Coaster in right Container
-    coasterContainer(word,16000)     
+    # # #Analyze Coaster for words
+    # word=getCoasterDetail(4000,2000)
+    # print(word)
+    # #Put Coaster in right Container
+    # coasterContainer(word,16000)     

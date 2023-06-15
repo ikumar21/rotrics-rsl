@@ -1,6 +1,6 @@
 import sys
 # adding folder to the system path
-sys.path.insert(0, '../')
+sys.path.insert(0, "MovementModule")
 import time
 from pydexarm import Dexarm
 
@@ -81,10 +81,3 @@ if(robotConnectedRail):
     #Now you can move relatively: (Moves 50 mm to the postive x)
     dexarm1.move_to(None,None,None,50,feedrate=4000,wait=True)
     dexarm1._send_cmd("G92.1\r");#Resets back to factory coordinate system
-
-
-    
-
-
-
-

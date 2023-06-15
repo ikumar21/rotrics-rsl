@@ -31,7 +31,7 @@ Right Key->Move Right by __ mm
 
 import sys
 # adding folder to the system path
-sys.path.insert(0, '../')
+sys.path.insert(0, 'MovementModule')
 import time
 from pydexarm import Dexarm
 import keyboard

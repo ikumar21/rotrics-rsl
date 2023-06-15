@@ -1,6 +1,4 @@
 import sys
-# adding folder to the system path
-sys.path.insert(0, '../imageFunc')
 
 import numpy as np
 import os

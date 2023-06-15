@@ -3,6 +3,8 @@ import time
 import math 
 from ttgLib.TextToGcode import ttg
 import threading
+import serial
+
 '''windows'''
 #laserDexarm = Dexarm(port="COM4")
 #Simulate G code: https://nraynaud.github.io/webgcode/
@@ -191,36 +193,33 @@ def runLaser(lasDexarm):
             a = x+"\r\n"
             lasDexarm._send_cmd(a);
 
+def initializeArduino():
+    global laserArduinoSerial
+    laserArduinoSerial = serial.Serial("COM7", 115200, timeout=0.2)
+def LaserDoorClose():
+    message = "$C\n"
+    laserArduinoSerial.write((bytes(message, 'utf-8')))
 
-if __name__ == "__main__":
-    # #Get lines from G-code:
-    # with open("rotricsGcode/car.gcode", "r") as f: lines = f.readlines()
-    
-    # #Set laser object center, angle, height/width, laser power:
-    # dog_laser = Laser_Object_Properties(False,[100,0],50,125,0)
+    #Wait until door is opened:
+    while True:
+        messageIncoming = laserArduinoSerial.readline()
+        if(len(messageIncoming)>0):
+            if(chr(messageIncoming[1])=='D'):
+                break;
+def LaserDoorOpen():
+    message = "$O\n"
+    laserArduinoSerial.write((bytes(message, 'utf-8')))
+    #Wait until door is opened:
+    while True:
+        messageIncoming = laserArduinoSerial.readline()
+        if(len(messageIncoming)>0):
+            print(messageIncoming)
+            if(chr(messageIncoming[1])=='D'):
+                break;
 
-    # #Get the modifed G-code with right properties
-    # newLines = modifyGcode(lines, dog_laser)
 
-    # #Write to file
-    # with open("outputGcode.txt", "w") as f:
-    #     f.writelines(newLines)
-    # f.close()
 
-    gcode_message_creation("ABC",50,True,200,(0,0))
-    # center = (20,30);
-    # #gcode_message_creation("A1",specifiedLength=30,fixHeight=True,power=34,messageCenter=center)
-    # cArray = [[0,0,True],[20,20,True], [40,0,True], [0,0,False/True]]
-    # gcode_point_creation(cArray,255)
-    # # laserDexarm.go_home()
-    # # laserDexarm._send_cmd("G92.1\r\n")
-    # # #laserDexarm.set_workorigin() 
-    # # time.sleep(3)
-    # # with open("outputGcode.txt") as f:#Send gcode of the letters:
-    # #     lines = f.readlines()
-    # # for x in lines:
-    # #     a = x+"\r\n"
-    # #     laserDexarm._send_cmd(a);
+
 
 
 

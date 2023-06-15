@@ -30,34 +30,9 @@ def initializeCamera():
     global camera0
     i_m.setGoogleEnviroment()
     camera0 = i_m.Camera_Object(cameraNum=0,cameraType=i_m.BIG_CAMERA)
-def initializeArduino():
-    global laserArduinoSerial
-    laserArduinoSerial = serial.Serial("COM7", 115200, timeout=0.2)
-def LaserDoorClose():
-    message = "$C\n"
-    laserArduinoSerial.write((bytes(message, 'utf-8')))
 
-    #Wait until door is opened:
-    while True:
-        messageIncoming = laserArduinoSerial.readline()
-        if(len(messageIncoming)>0):
-            if(chr(messageIncoming[1])=='D'):
-                break;
-def LaserDoorOpen():
-    message = "$O\n"
-    laserArduinoSerial.write(message.encode())
-    print("send")
-    laserArduinoSerial.write((bytes(message, 'utf-8')))
-    #Wait until door is opened:
-    while True:
-        messageIncoming = laserArduinoSerial.readline()
-        if(len(messageIncoming)>0):
-            print(messageIncoming)
-            if(chr(messageIncoming[1])=='D'):
-                break;
 
 def laserCoaster():
-    #dogProp = l_m.Laser_Object_Properties(False,[0,300],60,125,0)
     l_m.gcode_message_creation("CAR",50,False,200,(0,300))
     l_m.runLaser(laserDexarm)
     pass
@@ -89,11 +64,11 @@ def dropCoasterLaser(feedrate):
 
 def getNewCoaster(feedrate):
     pickUpNewCoaster(feedrate)
-    LaserDoorOpen()
+    l_m.LaserDoorOpen()
     laserHide(feedrate)
     dropCoasterLaser(feedrate)
     pickerHide(feedrate)
-    LaserDoorClose()
+    l_m.LaserDoorClose()
 
 def CoasterLaser2Conveyor(feedrate):
     #Pick up Coaster
@@ -115,7 +90,7 @@ def CoasterLaser2Conveyor(feedrate):
     pickerHide(feedrate)
 
 def conveyorDropOff(feedrate):
-    LaserDoorOpen()
+    l_m.LaserDoorOpen()
     laserHide(feedrate)
     CoasterLaser2Conveyor(feedrate)
 
@@ -163,27 +138,23 @@ def bottomContainerCoaster(feedrate):
 
 if __name__ == "__main__":
 
-    initializeArduino()
-    time.sleep(3)
-    LaserDoorOpen();
-    time.sleep(5);
-    LaserDoorClose();
-    # #Initialize:
-    # initializeRobotArms()
-    # initializeArduino()
-    # initializeCamera()
 
-    # #Pick up new Coaster, open laser door, drop off coaster to laser, Close Laser door
-    # getNewCoaster(16000)
+    #Initialize:
+    initializeRobotArms()
+    l_m.initializeArduino()
+    initializeCamera()
 
-    # #time.sleep(5)
-    # laserCoaster()
+    #Pick up new Coaster, open laser door, drop off coaster to laser, Close Laser door
+    getNewCoaster(16000)
 
-    # #Open Laser door, pick up coaster, drop off coaster at Conveyor
-    # conveyorDropOff(16000)
+    #time.sleep(5)
+    laserCoaster()
 
-    # # #Analyze Coaster for words
-    # word=getCoasterDetail(4000,2000)
-    # print(word)
-    # #Put Coaster in right Container
-    # coasterContainer(word,16000)     
+    #Open Laser door, pick up coaster, drop off coaster at Conveyor
+    conveyorDropOff(16000)
+
+    # #Analyze Coaster for words
+    word=getCoasterDetail(4000,2000)
+    print(word)
+    #Put Coaster in right Container
+    coasterContainer(word,16000)     

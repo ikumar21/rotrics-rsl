@@ -6,18 +6,12 @@
 import sys
 import os
 # adding folder to the system path
-sys.path.insert(0, '../imageFunc')
-sys.path.insert(0, '../')
+sys.path.insert(0, 'ImageModule')
 import image_module as img_m
 import cv2
 import glob
 
-directorySaveImage = 'testImages/*.jpg'
-
-#Create directory if doesn't exist
-folderExists = os.path.exists(directorySaveImage[0:directorySaveImage.index("/")])
-if(not folderExists):
-    os.mkdir(directorySaveImage[0:directorySaveImage.index("/")])
+directorySaveImage = '"ExampleCode/ImageScripts/testImages/*.jpg'
 
 
 

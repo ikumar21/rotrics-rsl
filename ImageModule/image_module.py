@@ -182,7 +182,7 @@ def ColorRecog(hsv):
     hVal = hsv[0]
     sVal = hsv[1]
     vVal = hsv[2]
-    if(sVal<10):#Could be white, Gray or white
+    if(sVal<15):#Could be white, Gray or white
         if(vVal >=90):
             return "WHITE"
         elif(vVal<=6):
@@ -589,10 +589,9 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
         
         contourNum =0;
         for contourOpenCV in contours:
-            
             #Get Width, Height, Area of each contour
             x,y,width, height = cv2.boundingRect(contourOpenCV)
-            area= width*height*1.0;
+            area= cv2.contourArea(contourOpenCV)
             contourPercentage = 100.0*(area)/(dimensions[0]*dimensions[1]*1.0)
             
             #Ignore huge or very small contours
@@ -644,9 +643,23 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
         #Input: single contour object 
         #Fill shape property in contour object
  
-        def shapeFromVertices(vertices, contour_data):
-            numVertices = len(vertices);
+        def shapeFromVertices(vertices, contour_data:OpenCV_Contour_Data):
 
+            #First See if it's a circle:
+            approx = cv2.approxPolyDP(contour_data.contourOpenCV, 0.01 * cv2.arcLength(contour_data.contourOpenCV,True),True);
+        
+            Ccenter,Crad = cv2.minEnclosingCircle(approx)
+            CA = np.pi*Crad**2;
+            error = abs(contour_data.area-CA)/contour_data.area*100
+
+            print("Error:", error)
+
+            #IF error is less than 7% than return that's it's a circle
+            if(error<7):
+                contour_data.shape="CIRCLE"
+                return;
+
+            numVertices = len(vertices);
             if(numVertices==3):
                 contour_data.shape = "TRIANGLE"
             elif(numVertices==4):
@@ -658,6 +671,7 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
             
             else:
                 contour_data.shape =str(numVertices)+" EDGES"
+
 
         perimeter = cv2.arcLength(contour_data.contourOpenCV, True)
         vertices = cv2.approxPolyDP(contour_data.contourOpenCV, self.param.minEdgePercent * perimeter, True);
@@ -738,16 +752,62 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
             stop_time = int(now_ns / 1000000) #Time in Milliseconds
             print("Func Time",stop_time-start_time)
         elif(self.colorRecogType==SIMPLE_FAST_COLOR):
-            self.PixelsInEnclosingRec()
+
             for contourObject in self.contour_objects: 
-                contourObject.color, contourObject.colorName= MeanHSV(contourObject.pixelsInRecImg[0],contourObject.pixelsInRecImg[1], self.imageHSV)
+                contourObject.color, contourObject.colorName= self.SimpleFastColor(contourObject)
+
+            # self.PixelsInEnclosingRec()
+            # for contourObject in self.contour_objects: 
+            #     contourObject.color, contourObject.colorName= MeanHSV(contourObject.pixelsInRecImg[0],contourObject.pixelsInRecImg[1], self.imageHSV)
+
+
+
         elif(self.colorRecogType==COMPLEX_FAST_COLOR):
             self.PixelsInEnclosingRec()
             for contourObject in self.contour_objects: 
                 contourObject.color, contourObject.colorName,contourObject.colorCount= MultipleMeanHSV(contourObject.pixelsInRecImg[0],contourObject.pixelsInRecImg[1], self.imageHSV)
         else:
             return 0;
+    def SimpleFastColor(self,contour_data:OpenCV_Contour_Data):
 
+        dimensions = self.imageBGR.shape
+
+        # COLOR ANALYSIS
+        # select sample of HSV values
+        approx = cv2.approxPolyDP(contour_data.contourOpenCV, 0.01 * cv2.arcLength(contour_data.contourOpenCV,True),True)
+        Ccenter,Crad = cv2.minEnclosingCircle(approx)
+        color = []
+        cnt = 0
+        for j in range(2,5):
+            for q in range(0,33):
+                # vary along different radii from center
+                stp = 2*np.pi/35
+                x = int(Crad/j * np.cos(q*stp) + Ccenter[1])
+                y = int(Crad/j * np.sin(q*stp) + Ccenter[0])
+
+                # check if pixel coordinates within image
+                if x <= 0 or x >= dimensions[0]:
+                    continue
+                if y <= 0 or y >= dimensions[1]:
+                    continue
+
+                color.append(np.int0(self.imageHSV[x,y]))
+                cnt = cnt + 1
+        color = np.array(color)
+
+        # exclude outlier data (2 std devs)
+        mnHSV = np.zeros(3)
+        for j in range(0,3):
+            mn = np.mean(color[:,j])
+            sd = np.std(color[:,j])
+            
+            color = np.delete(color, np.where(color[:,j] > mn+2*sd),axis=0)
+            color = np.delete(color, np.where(color[:,j] < mn-2*sd),axis=0)
+            
+            mnHSV[j] = round(np.mean(color[:,j]),2)
+        print("COLOR", CorrectHSV(mnHSV) )
+        return mnHSV, ColorRecog(CorrectHSV(mnHSV))
+    
     def FindCropImgBGR(self):
         for contour_obj in self.contour_objects:
             contour_obj.cropImgBGR = CropImg(contour_obj.vertices,self.imageBGR);
@@ -790,6 +850,7 @@ def testObjects(imageFile):
             break
 
 
+"""
 
 
 
@@ -843,3 +904,5 @@ def testObjects(imageFile):
   
 # cv2.waitKey(0)
 # cv2.destroyAllWindows()
+
+"""

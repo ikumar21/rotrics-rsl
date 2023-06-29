@@ -34,6 +34,27 @@ def editHeaderAddNewLines(lines):
     lines[3]="G0 F800\nG1 F800 \n"
 
 
+def GcodeObjectCreation(fileName,objectProperties: Laser_Object_Properties):
+    #First argument - File of G-Code 
+    #Second Argument - Desired properties of Object 
+    #Output: G-Code in outputGcode.txt and returns tuple -> width, height
+    
+    #Get lines from G-code:
+    with open(fileName, "r") as f: objectLines = f.readlines()
+    
+    #Set laser object center, angle, height/width, laser power:
+    # dog_laser = Laser_Object_Properties(fixHeight=True,centerPoint=[0,340-25],specifiedLength=50,laserPower=125,angle=0)
+    
+    #Get the modifed G-code with right properties
+    laserLines,width, height = ModifyGcode(objectLines, objectProperties);
+
+    #Write to file
+    with open("outputGcode.txt", "w") as f:
+        f.writelines(laserLines)
+    f.close()
+    
+    return width, height
+
 def gcode_message_creation(message,specifiedLength,fixHeight,power, messageCenter):
     #First argument - Message to Write - String
     #Second Argument - length desired (mm) 
@@ -91,7 +112,7 @@ def gcode_message_creation(message,specifiedLength,fixHeight,power, messageCente
     f.close()
 
     #Return width, height:
-    return max(xPos)-min(xPos), max(yPos)-min(yPos)
+    return round(max(xPos)-min(xPos),2), round(max(yPos)-min(yPos),2)
 
 
 def gcode_point_creation(coorArray,power):
@@ -128,6 +149,7 @@ def gcode_point_creation(coorArray,power):
 
 
 def ModifyGcode(lines, obj_prop:Laser_Object_Properties):
+    #Returns lines, width, and height
     
     #Get all movement x, y positions:
     xPos = [float(line[4:line.index(' ', 3)]) for line in lines if line[0]=='G' and line[3]=='X']
@@ -174,7 +196,8 @@ def ModifyGcode(lines, obj_prop:Laser_Object_Properties):
             lines[linePos] = "G"+str(int(laserCommand))+" X" + xPosString+" Y"+yPosString+'\n'     
             lineIndex+=1
 
-    return lines;
+    
+    return lines, round(max(xPos)-min(xPos),2), round(max(yPos)-min(yPos),2);
 
 
 def runLaser(lasDexarm):

@@ -10,19 +10,15 @@ from pydexarm import Dexarm
 
 
 def EngraveActualDog(laserRobot):
-    #Get lines from G-code:
-    with open("LaserModule/rotricsGcode/dog.gcode", "r") as f: dogLines = f.readlines()
+
+    #File Name:
+    fileLocName = "LaserModule/rotricsGcode/dog.gcode";
     
     #Set laser object center, angle, height/width, laser power:
     dog_laser = l_m.Laser_Object_Properties(fixHeight=True,centerPoint=[0,340-25],specifiedLength=50,laserPower=125,angle=0)
     
-    #Get the modifed G-code with right properties
-    laserLines = l_m.ModifyGcode(dogLines, dog_laser)
-
-    #Write to file
-    with open("outputGcode.txt", "w") as f:
-        f.writelines(laserLines)
-    f.close()
+    #Generate G-Code:
+    l_m.GcodeObjectCreation(fileLocName,dog_laser)
 
     #Run the Laser
     l_m.runLaser(laserRobot)

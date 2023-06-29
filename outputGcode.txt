@@ -8,10 +8,10 @@ M888 P14;custom:turn on cover fan
 M5
 G0 F2000
 G1 F2000
-G0 X25.07 Y321.53
+G0 X-10.0 Y285.0
 M3 S127
-G1 X51.92 Y321.53
-G1 X25.07 Y321.53
+G1 X10.0 Y285.0
+G1 X-10.0 Y285.0
 M5
 ;----------- End Gcode -------------
 M888 P15;custom:turn off cover fan

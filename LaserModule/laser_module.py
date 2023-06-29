@@ -90,6 +90,9 @@ def gcode_message_creation(message,specifiedLength,fixHeight,power, messageCente
         f.writelines(lines)
     f.close()
 
+    #Return width, height:
+    return max(xPos)-min(xPos), max(yPos)-min(yPos)
+
 
 def gcode_point_creation(coorArray,power):
     #Ouput: gcode of lasering lines between points-> outputGcode.txt

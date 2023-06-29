@@ -228,6 +228,9 @@ initializeArduino();
 ani = animation.FuncAnimation(fig, PlotTemp, fargs=(xs,ys,ys2), interval=1200)
 aniHum = animation.FuncAnimation(hfig, PlotHum, fargs=(xs,hys,hys2), interval=1200)
 aniControl = animation.FuncAnimation(figControl, PlotControl, fargs=(xs,controlForce), interval=1200)
+
+
+
 plt.show()
 
 

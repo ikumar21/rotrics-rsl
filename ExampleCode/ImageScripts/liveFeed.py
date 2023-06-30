@@ -23,7 +23,7 @@ while True:
 
     #Create Parameters
     parameters = i_m.Open_CV_Parameters()
-    parameters.whiteBackground=False
+    parameters.whiteBackground=True
     parameters.colorRecogType = i_m.SIMPLE_FAST_COLOR#Change default parameter for color recognition
 
     image_analysis = i_m.Open_CV_Analysis(imageBGR=undistortedImage,analysis_parameters= parameters)

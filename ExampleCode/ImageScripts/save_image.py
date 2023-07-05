@@ -1,5 +1,5 @@
 #Script to look at camera live and take images so it can be processed later using other scripts
-#Images are saved in testImages Folder
+#Images are saved in testImages Folder (Make sure that folder exists)
 #Press space to save image
 #Press esc to exit program
 
@@ -11,21 +11,19 @@ import image_module as img_m
 import cv2
 import glob
 
-directorySaveImage = '"ExampleCode/ImageScripts/testImages/*.jpg'
+directorySaveImage = "ExampleCode/ImageScripts/testImages/"
 
 
-
-def findMaxFileName(directoryName):
-    images = glob.glob(directoryName);
-    maxNum = 0;
-    for fileName in images:
-        try:#Macbook
-            num = int(fileName[fileName.index("/")+12:fileName.index('.')])
-        except:
-            num = int(fileName[fileName.index("\\")+1:fileName.index('.')])
-        maxNum = num if num>maxNum else maxNum
-    return maxNum;
-
+def saveFile(directoryName, img):
+    num = 1;
+    while True:
+        if(os.path.exists(directoryName+str(num)+".jpg")):
+           num+=1;
+        else:
+            img_name = directoryName+"{}.jpg".format(num)
+            cv2.imwrite(img_name, img)
+            print("{} written!".format(img_name))
+            break;
 
 #Start up camera
 camera0 = img_m.Camera_Object(cameraNum=0,cameraType=img_m.BIG_CAMERA)
@@ -46,7 +44,7 @@ while True:
         break
     elif k%256 == 32:
         # SPACE pressed: Look Image
-        cv2.destroyWindow("Live Camera")        
+        cv2.destroyWindow("Live Camera; Press Space to capture image")        
         cv2.imshow("Press Space to Save; Press Escape To discard", undistortedImage)
 
         #Wait for user input:
@@ -59,10 +57,7 @@ while True:
                     print("Escape hit, closing...")
                 elif k%256 == 32:
                     # Space pressed:Save Image
-                    maxNum = findMaxFileName(directorySaveImage)
-                    img_name = "testImages/{}.jpg".format(maxNum+1)
-                    cv2.imwrite(img_name, undistortedImage)
-                    print("{} written!".format(img_name))
+                    saveFile(directorySaveImage,undistortedImage)
                 break
 
 

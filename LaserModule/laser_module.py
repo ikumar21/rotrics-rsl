@@ -4,6 +4,7 @@ import math
 from ttgLib.TextToGcode import ttg
 import threading
 import serial
+import random
 
 '''windows'''
 #laserDexarm = Dexarm(port="COM4")
@@ -246,6 +247,9 @@ def LaserDoorOpen():
 
 
 
-
+def randomWord(listOfWords = ["CAT","DOG", "CAR"]):
+    #Returns a random word in a list
+    numberOfWords = len(listOfWords);
+    return random.randint(0,numberOfWords)
 
 

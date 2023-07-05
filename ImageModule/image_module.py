@@ -11,53 +11,12 @@ from scipy.optimize import fsolve
 import math
 import time
 
-#Google Cloud Setup:
 
-#Terminal (Download Library): pip3 install --upgrade google-cloud-vision
-
-#Macbook: Enter in Terminal
-"""
-export PROJECT_ID=rotricstest
-export GOOGLE_CLOUD_PROJECT=rotricstest
-export GOOGLE_CLOUD_QUOTA_PROJECT=rotricstest
-export GOOGLE_APPLICATION_CREDENTIALS=../imageFunc/application_default_credentials.json
-
-"""
-
-#Windows Terminal: Everything above(replace export with set)
-#also change last Command: 
-r"""
-set PROJECT_ID=rotricstest
-set GOOGLE_CLOUD_PROJECT=rotricstest
-set GOOGLE_CLOUD_QUOTA_PROJECT=rotricstest
-set GOOGLE_APPLICATION_CREDENTIALS=C:\Users\rsl\Desktop\rotrics-rsl\ImageModule\Cloud_Credentials.json
-"""
-
-
-
-
-
-#Use demo to Test: https://cloud.google.com/vision#section-2
+#Use demo to test: https://cloud.google.com/vision#section-2
 
 #Google Cloud Vision:
 client = vision.ImageAnnotatorClient()
 
-def setGoogleEnviroment():
-    try: 
-        os.system("export PROJECT_ID=rotricstest")
-        os.system("export GOOGLE_CLOUD_PROJECT=rotricstest")
-        os.system("export GOOGLE_CLOUD_QUOTA_PROJECT=rotricstest")
-        os.system("export GOOGLE_APPLICATION_CREDENTIALS=../imageFunc/application_default_credentials.json")
-    except:
-        pass
-    try:
-        os.system("set PROJECT_ID=rotricstest")
-        os.system("set GOOGLE_CLOUD_PROJECT=rotricstest")
-        os.system("set GOOGLE_CLOUD_QUOTA_PROJECT=rotricstest")
-        os.system(r"set GOOGLE_APPLICATION_CREDENTIALS=C:\Users\rsl\Desktop\rotrics-rsl\imageFunc\application_default_credentials.json")
-    except:
-        pass
-# setGoogleEnviroment();
 
 #Initializes constants used in module
 def InitializeConstants():
@@ -71,23 +30,7 @@ def InitializeConstants():
        [0.00000000e+00, 1.08077869e+03, 5.48779482e+02],
        [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
     D = np.array([[-0.09591922],[-0.03262541],[ 0.03432325],[-0.01535015]])
-    """
-    print(K)
-    print(D)
-    try:
-        K = np.load("ImageModule/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
-        D = np.load("ImageModule/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
-    except:
-        try:
-            K = np.load("../imageFunc/cImages/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
-            D = np.load("../imageFunc/cImages/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
-        except:
-            K = np.load("../../imageFunc/cImages/K.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
-            D = np.load("../../imageFunc/cImages/D.npy", mmap_mode=None, allow_pickle=False, fix_imports=True, encoding='ASCII')
-
-    """
-
-
+    
     FISHEYE_K1 = D[0][0];
     FISHEYE_K2 = D[1][0];
     FISHEYE_K3 = D[2][0];

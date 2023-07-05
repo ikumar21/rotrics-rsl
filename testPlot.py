@@ -1,10 +1,4 @@
 import time
+import random
 
-
-startTime = time.monotonic()
-
-time.sleep(3)
-
-stopTime = time.monotonic()
-
-print(startTime,stopTime, stopTime-startTime)
+print(random.randint(1,10))

@@ -21,7 +21,7 @@ print(now_ns)
 
 
 
-imageFiles = glob.glob("ExampleCode/ImageScripts/testImages/39.jpg");
+imageFiles = glob.glob("ExampleCode/ImageScripts/testImages/1.jpg");
 
 
 for img_path in imageFiles:
@@ -31,7 +31,7 @@ for img_path in imageFiles:
     parameters = i_m.Open_CV_Parameters()
     parameters.whiteBackground=True;
     parameters.runFindColorContour=True;
-    parameters.colorRecogType = i_m.COMPLEX_SLOW_COLOR
+    parameters.colorRecogType = i_m.SIMPLE_FAST_COLOR
     parameters.contourMaxArea=95;
     parameters.contourMinArea=0.05
     parameters.minEdgePercent=0.03;
@@ -63,15 +63,15 @@ for img_path in imageFiles:
         cv2.putText(contourImageData, textString, (centerX - 20, centerY - 20),
             cv2.FONT_HERSHEY_SIMPLEX, 0.3, (0,0,0), 1)
 
-    # cv2.imshow("Con", img_data.contourImageBGR)
+    cv2.imshow("Con", img_data.contourImageBGR)
 
     # concatenate actual and Threshold image Horizontally & contour and contour Data Image horziontally
     smallActualImg = cv2.resize(img_data.imageBGR, (800,450), interpolation = cv2.INTER_AREA)
     smallThresholdImg = cv2.resize(img_data.thresholdBGR, (800,450), interpolation = cv2.INTER_AREA)
     actualThreshold = np.concatenate((smallActualImg, smallThresholdImg), axis=1)
-    # smallContourImg = cv2.resize(img_data.contourImageBGR,(800,450), interpolation = cv2.INTER_AREA)
+    smallContourImg = cv2.resize(img_data.contourImageBGR,(800,450), interpolation = cv2.INTER_AREA)
     smallContourDataImg = cv2.resize(contourImageData, (800,450), interpolation = cv2.INTER_AREA)
-    # contourData = np.concatenate((smallContourImg, smallContourDataImg), axis=1)
+    contourData = np.concatenate((smallContourImg, smallContourDataImg), axis=1)
 
 
 

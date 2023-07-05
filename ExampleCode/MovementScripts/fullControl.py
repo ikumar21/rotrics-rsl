@@ -35,7 +35,6 @@ sys.path.insert(0, 'MovementModule')
 import time
 from pydexarm import Dexarm
 import keyboard
-import threading
 import sys
 
 #Open communication with dexarm

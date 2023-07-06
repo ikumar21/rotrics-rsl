@@ -1,10 +1,10 @@
 import sys
 # adding folder to the system path
 sys.path.insert(0, "MovementModule")
-import time
+
 from pydexarm import Dexarm
 
-
+import time
 
 
 #Go to Rotrics Studio and check port name of dexarm

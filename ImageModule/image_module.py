@@ -138,8 +138,11 @@ def ColorRecog(hsv):
         return "ORANGE"
     elif(50<=hVal<=90):
         return "YELLOW"
-       
-    elif(210<=hVal<=270):
+    elif(90<=hVal<=180):
+        return "GREEN"
+    # elif(150<=hVal<=210):
+    #     return "CYAN"
+    elif(180<=hVal<=270):
         return "BLUE"
     elif(270<=hVal<=330):
         return "MAGENTA"

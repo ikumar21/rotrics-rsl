@@ -30,7 +30,7 @@ def InitializeConstants():
        [0.00000000e+00, 1.08077869e+03, 5.48779482e+02],
        [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
     D = np.array([[-0.09591922],[-0.03262541],[ 0.03432325],[-0.01535015]])
-    
+
     FISHEYE_K1 = D[0][0];
     FISHEYE_K2 = D[1][0];
     FISHEYE_K3 = D[2][0];
@@ -138,11 +138,11 @@ def ColorRecog(hsv):
         return "ORANGE"
     elif(50<=hVal<=90):
         return "YELLOW"
-    elif(90<=hVal<=150):
+    elif(90<=hVal<=180):
         return "GREEN"
-    elif(150<=hVal<=210):
-        return "CYAN"
-    elif(210<=hVal<=270):
+    # elif(150<=hVal<=210):
+    #     return "CYAN"
+    elif(180<=hVal<=270):
         return "BLUE"
     elif(270<=hVal<=330):
         return "MAGENTA"

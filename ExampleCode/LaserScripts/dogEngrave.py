@@ -24,7 +24,7 @@ def EngraveActualDog(laserRobot):
 
 
 def EngraveLettersDog(laserRobot):
-    width, height = l_m.gcode_message_creation("DOG",20,False,125,(0,290))
+    width, height = l_m.gcode_message_creation("CAT",15,False,255,(0,300))
     l_m.runLaser(laserRobot)
     return width;
 
@@ -35,8 +35,9 @@ if __name__ == "__main__":
     laserDexarm = Dexarm(port="COM4");
 
     #Laser:
-    EngraveActualDog(laserDexarm);
-    EngraveLettersDog(laserDexarm)
+    # EngraveActualDog(laserDexarm);
+    for _ in range(20):
+        EngraveLettersDog(laserDexarm)
 
 
 

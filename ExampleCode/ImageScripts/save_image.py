@@ -33,7 +33,7 @@ while True:
     undistortedImage = camera0.GetImageBGR(undistorted=True);
 
     #Show Live Camera Image:
-    cv2.imshow("Live Camera", undistortedImage)
+    cv2.imshow("Live Camera; Press Space to capture image", undistortedImage)
 
     #Pause program and look for keyboard input:
     k = cv2.waitKey(1)

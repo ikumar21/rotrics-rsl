@@ -30,10 +30,11 @@ Right Key->Move Right by __ mm
 
 
 import sys
-# adding folder to the system path
-sys.path.insert(0, 'MovementModule')
-import time
+# Add Movement module
+sys.path.insert(0, "MovementModule")
 from pydexarm import Dexarm
+
+import time
 import keyboard
 import threading
 import sys

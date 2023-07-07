@@ -1,7 +1,7 @@
 import sys
 
 
-# Adding Mov module
+# Add Movement module
 sys.path.insert(0, "MovementModule")
 from pydexarm import Dexarm
 

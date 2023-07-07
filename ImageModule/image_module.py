@@ -713,7 +713,14 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
             return 0;
     def SimpleFastColor(self,contour_data:OpenCV_Contour_Data):
 
-        dimensions = self.imageBGR.shape
+        if contour_data.shape == 'SQUARE':
+          radii = [1/5,2/5,3/5]
+        elif contour_data.shape == 'TRIANGLE':
+          radii = [1/7,2/7,3/7]
+        elif contour_data.shape == "PENTAGON":
+            radii = [1/6,2/6,3/6];
+        else:
+          radii = [1/4,2/4,3/4]
 
         # COLOR ANALYSIS
         # select sample of HSV values
@@ -721,20 +728,18 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
         Ccenter,Crad = cv2.minEnclosingCircle(approx)
         color = []
         cnt = 0
-        for j in range(2,5):
+        for j in range(0,3):
             for q in range(0,33):
                 # vary along different radii from center
                 stp = 2*np.pi/35
-                x = int(Crad/j * np.cos(q*stp) + Ccenter[1])
-                y = int(Crad/j * np.sin(q*stp) + Ccenter[0])
+                x = int(Crad*radii[j] * np.sin(q*stp) + Ccenter[0])
+                y = int(Crad*radii[j] * np.cos(q*stp) + Ccenter[1])
 
-                # check if pixel coordinates within image
-                if x <= 0 or x >= dimensions[0]:
-                    continue
-                if y <= 0 or y >= dimensions[1]:
+                # check that (x,y) is within the contour
+                if cv2.pointPolygonTest(contour_data.contourOpenCV,(x,y),False) == -1:
                     continue
 
-                color.append(np.int0(self.imageHSV[x,y]))
+                color.append(self.imageHSV[y,x])
                 cnt = cnt + 1
         color = np.array(color)
 

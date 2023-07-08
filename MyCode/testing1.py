@@ -35,9 +35,17 @@ from pydexarm import Dexarm
 # time.sleep(3);
 # l_m.LaserDoorClose()
 
+laserarm = Dexarm(port="COM4")#Open communication with Dexarm
+
+l_m.initializeArduino()
+
+time.sleep(3)
+
+l_m.LaserDoorClose()
+
+l_m.gcode_message_creation("DOG",20,False,255,(0,300))
+l_m.runLaser(laserarm)
+l_m.LaserDoorOpen()
 
 
-laserArm = Dexarm(port="COM4")#Open communication with dexarm
 
-l_m.gcode_message_creation("CAT",50,False,255,(0,300))
-l_m.runLaser(laserArm)

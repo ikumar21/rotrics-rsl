@@ -56,7 +56,7 @@ def GcodeObjectCreation(fileName,objectProperties: Laser_Object_Properties):
     
     return width, height
 
-def gcode_message_creation(message,specifiedLength,fixHeight,power, messageCenter):
+def gcode_message_creation(message,specifiedLength,fixHeight,power, messageCenter, angle =0):
     #First argument - Message to Write - String
     #Second Argument - length desired (mm) 
     #Third argument - True - height should be set to the specified length, False- width should be set
@@ -92,6 +92,18 @@ def gcode_message_creation(message,specifiedLength,fixHeight,power, messageCente
     #Start at right place
     lines[3]+="G0 X"+str(round(xPos[0],2))+" Y"+str(round(yPos[0],2))+"\n"
 
+    #Rotates Object
+    cosA = math.cos(math.pi*angle/180.0)*1.0
+    sinA = math.sin(math.pi*angle/180.0)*1.0 
+    xCenter = messageCenter[0]
+    yCenter = messageCenter[1]
+    for index in range(len(xPos)):
+        xOld = xPos[index]-xCenter*1.0;
+        yOld = yPos[index]-yCenter*1.0;
+        xPos[index]= 1.0*xOld*cosA+1.0*yOld*sinA+xCenter
+        yPos[index]= 1.0*yOld*cosA-1.0*xOld*sinA+yCenter
+    
+
     #Changes the Gcode x,y to scale/move, round to 2 decimal points (mm)
     lineIndex =0;
 
@@ -115,37 +127,6 @@ def gcode_message_creation(message,specifiedLength,fixHeight,power, messageCente
     #Return width, height:
     return round(max(xPos)-min(xPos),2), round(max(yPos)-min(yPos),2)
 
-
-def gcode_point_creation(coorArray,power):
-    #Ouput: gcode of lasering lines between points-> outputGcode.txt
-
-    #Input coorArray: array of arrays [x,y, LaserOn]
-    #LaserOn - should laser be on when going to next point
-
-    #Ex: [[0,0,True],[0,20,False], [10,20,True], [10,0,False/True]]
-    #Will create two vertical lines at x = 0 and 10 with height of 20.
-
-    power = int(power) if (int(power) <256 and int(power)>0) else 100
-    laserOnCommand = "M3 S"+str(power)+"\n"
-
-    coorArray[-1][2]=False;#Turn off Laser at last coordinate
-
-    lines = [" "," "," "," "]
-    editHeaderAddNewLines(lines)#Add header 
-    
-    
-    prevLaserCommand = False;#Start with laser off
-    for coordinate in coorArray:
-        posCommand = "G"+str(int(prevLaserCommand))+ " X"+str(coordinate[0])+ " Y"+str(coordinate[1])+"\n"
-        lines.append(posCommand)#Go To coordinate
-        if(coordinate[2]!= prevLaserCommand):#Turn on/off laser if it isn't already
-            laserCommand = laserOnCommand if coordinate[2] else "M5\n"
-            lines.append(laserCommand)
-            prevLaserCommand=coordinate[2]; 
-    #for lines 
-    with open("outputGcode.txt", "w") as f:
-        f.writelines(lines)
-    f.close()
 
 
 
@@ -201,11 +182,7 @@ def ModifyGcode(lines, obj_prop:Laser_Object_Properties):
     return lines, round(max(xPos)-min(xPos),2), round(max(yPos)-min(yPos),2);
 
 
-def runLaser(lasDexarm):
-    
-    #Initializes Robot
-    lasDexarm.go_home()
-    
+def runLaser(lasDexarm):    
     #Resets coordinate to dexarm factory setting, home is (0,300)
     lasDexarm._send_cmd("G92.1\r\n")
 
@@ -223,6 +200,7 @@ def runLaser(lasDexarm):
 def initializeArduino():
     global laserArduinoSerial
     laserArduinoSerial = serial.Serial("COM7", 115200, timeout=0.2)
+    time.sleep(3)
 def LaserDoorClose():
     message = "$C\n"
     laserArduinoSerial.write((bytes(message, 'utf-8')))
@@ -253,3 +231,33 @@ def randomWord(listOfWords = ["CAT","DOG", "CAR"]):
     return random.randint(0,numberOfWords)
 
 
+# def gcode_point_creation(coorArray,power):
+#     #Ouput: gcode of lasering lines between points-> outputGcode.txt
+
+#     #Input coorArray: array of arrays [x,y, LaserOn]
+#     #LaserOn - should laser be on when going to next point
+
+#     #Ex: [[0,0,True],[0,20,False], [10,20,True], [10,0,False/True]]
+#     #Will create two vertical lines at x = 0 and 10 with height of 20.
+
+#     power = int(power) if (int(power) <256 and int(power)>0) else 100
+#     laserOnCommand = "M3 S"+str(power)+"\n"
+
+#     coorArray[-1][2]=False;#Turn off Laser at last coordinate
+
+#     lines = [" "," "," "," "]
+#     editHeaderAddNewLines(lines)#Add header 
+    
+    
+#     prevLaserCommand = False;#Start with laser off
+#     for coordinate in coorArray:
+#         posCommand = "G"+str(int(prevLaserCommand))+ " X"+str(coordinate[0])+ " Y"+str(coordinate[1])+"\n"
+#         lines.append(posCommand)#Go To coordinate
+#         if(coordinate[2]!= prevLaserCommand):#Turn on/off laser if it isn't already
+#             laserCommand = laserOnCommand if coordinate[2] else "M5\n"
+#             lines.append(laserCommand)
+#             prevLaserCommand=coordinate[2]; 
+#     #for lines 
+#     with open("outputGcode.txt", "w") as f:
+#         f.writelines(lines)
+#     f.close()

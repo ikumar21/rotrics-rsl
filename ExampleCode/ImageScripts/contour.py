@@ -21,7 +21,7 @@ print(now_ns)
 
 
 
-imageFiles = glob.glob("ExampleCode/ImageScripts/testImages/48.jpg");
+imageFiles = glob.glob("ExampleCode/ImageScripts/testImages/110.jpg");
 
 
 for img_path in imageFiles:

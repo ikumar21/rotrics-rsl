@@ -13,7 +13,7 @@ import time
 def EngraveActualDog(laserRobot):
 
     #File Name:
-    fileLocName = "LaserModule/rotricsGcode/dog.gcode";
+    fileLocName = "LaserModule/rotricsGcode/cat.gcode";
     
     #Set laser object center, angle, height/width, laser power:
     dog_laser = l_m.Laser_Object_Properties(fixHeight=True,centerPoint=[0,305],specifiedLength=10,laserPower=125,angle=0)
@@ -28,7 +28,7 @@ def EngraveActualDog(laserRobot):
 
 def EngraveLettersDog(laserRobot):
     #Generate G-Code:
-    width, height = l_m.gcode_message_creation("DOG",10,False,255,(0,296))
+    width, height = l_m.gcode_message_creation("CAT",15,False,125,(0,296))
     
     #Run laser:
     l_m.runLaser(laserRobot)
@@ -40,7 +40,7 @@ def EngraveUnderLine(laserRobot, width, height):
     fileLocName = "LaserModule/rotricsGcode/HorizontalLine.gcode";
     
     #Set laser object center, angle, height/width, laser power:
-    line_prop = l_m.Laser_Object_Properties(fixHeight=False,centerPoint=[0,295-height/2],specifiedLength=width,laserPower=255,angle=0)
+    line_prop = l_m.Laser_Object_Properties(fixHeight=False,centerPoint=[0,295-height/2],specifiedLength=width,laserPower=30,angle=0)
     
     #Generate G-Code:
     width, height = l_m.GcodeObjectCreation(fileLocName,line_prop)
@@ -54,21 +54,23 @@ if __name__ == "__main__":
     #Initialize Arm:
     laserDexarm.go_home();
 
-    #Initialize Arduino:
-    l_m.initializeArduino()
+    # #Initialize Arduino:
+    # l_m.initializeArduino()
 
-    #Close Laser Door:
-    l_m.LaserDoorClose()
+    # #Close Laser Door:
+    # l_m.LaserDoorClose()
 
     #Laser:
     EngraveActualDog(laserDexarm);
     width, height = EngraveLettersDog(laserDexarm)
-    EngraveUnderLine(laserDexarm,width,height)
+    # width, height = EngraveLettersDog(laserDexarm)
+    # width, height = EngraveLettersDog(laserDexarm)
+    # EngraveUnderLine(laserDexarm,width,height)
 
 
-    #Wait for 0.5 sec and Open Laser Door:
-    time.sleep(0.5)
-    l_m.LaserDoorOpen();
+    # #Wait for 0.5 sec and Open Laser Door:
+    # time.sleep(0.5)
+    # l_m.LaserDoorOpen();
 
 
 

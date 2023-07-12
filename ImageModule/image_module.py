@@ -132,9 +132,9 @@ def ColorRecog(hsv):
             return "BLACK"
         else:
             return "GRAY"
-    if(0<=hVal<=30 or 330<=hVal<=360):
+    if(330<=hVal<=360):
         return "RED"
-    elif(30<=hVal<=50):
+    elif(0<=hVal<=50):
         return "ORANGE"
     elif(50<=hVal<=90):
         return "YELLOW"
@@ -382,8 +382,10 @@ class Google_Analysis():
         #Get all the text in Image:
         self.allText=response.full_text_annotation.text
         #First page's confidence:
-        self.allTextConfidence= next(iter(response.full_text_annotation.pages), None).confidence
-
+        try:
+            self.allTextConfidence= next(iter(response.full_text_annotation.pages), None).confidence
+        except:
+            self.allTextConfidence=None;
         #Get the text, confidence, enclosing rectangular box, and center for each word in the image 
         for page in response.full_text_annotation.pages:
             for block in page.blocks:
@@ -510,6 +512,7 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
         #Threshold Images:
         grayImg = cv2.cvtColor(self.imageBGR, cv2.COLOR_BGR2GRAY)
         blurredImg = cv2.GaussianBlur(grayImg, kSize,sigmaX) 
+        
         threshImageGray = cv2.threshold(blurredImg, 0, 255, threshType)[1]
 
         #Opencv needs black background and white objects, so invert image if needed

@@ -21,7 +21,7 @@ class Laser_Object_Properties():
         self.specifiedLength = specifiedLength;
         self.laserPower = laserPower;
         self.angle = angle;
-        self.laseringFeedrate = 800;
+        self.laseringFeedrate = 400;
         self.movingFeedrate = 800;
 
 def editHeaderAddNewLines(lines):
@@ -32,7 +32,7 @@ def editHeaderAddNewLines(lines):
     lines[0]="G0 Z0\n"
     lines[1]="M2000\n"
     lines[2]="M888 P1\nM888 P14 \nM5\n"#M5 turns off Laser
-    lines[3]="G0 F800\nG1 F800 \n"
+    lines[3]="G0 F800\nG1 F400 \n"
 
 
 def GcodeObjectCreation(fileName,objectProperties: Laser_Object_Properties):
@@ -42,9 +42,6 @@ def GcodeObjectCreation(fileName,objectProperties: Laser_Object_Properties):
     
     #Get lines from G-code:
     with open(fileName, "r") as f: objectLines = f.readlines()
-    
-    #Set laser object center, angle, height/width, laser power:
-    # dog_laser = Laser_Object_Properties(fixHeight=True,centerPoint=[0,340-25],specifiedLength=50,laserPower=125,angle=0)
     
     #Get the modifed G-code with right properties
     laserLines,width, height = ModifyGcode(objectLines, objectProperties);
@@ -170,14 +167,19 @@ def ModifyGcode(lines, obj_prop:Laser_Object_Properties):
         line = lines[linePos]
         if(line[0:2] == "M5"):#Laser should turn off:
             laserCommand = False
-        elif(line[0:2]=="M3"):#Laser should be on
+        elif(line[0:2]=="M3"):#Laser should be on, change power
             laserCommand = True
+            lines[linePos]="M3 S"+str(obj_prop.laserPower)+"\n"
         if(line[0]=='G' and (line[1]=='1' or line[1]=='0') and line[3]=='X'):
             xPosString = str(round(xPos[lineIndex],2))
             yPosString = str(round(yPos[lineIndex],2))
             lines[linePos] = "G"+str(int(laserCommand))+" X" + xPosString+" Y"+yPosString+'\n'     
             lineIndex+=1
 
+
+    #Change heading to match feedrates
+    lines[8]="G0 F" +str(obj_prop.movingFeedrate)+'\n';
+    lines[9]="G1 F" +str(obj_prop.laseringFeedrate)+'\n';
     
     return lines, round(max(xPos)-min(xPos),2), round(max(yPos)-min(yPos),2);
 

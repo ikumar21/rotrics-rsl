@@ -54,11 +54,11 @@ if __name__ == "__main__":
     #Initialize Arm:
     laserDexarm.go_home();
 
-    # #Initialize Arduino:
-    # l_m.initializeArduino()
+    #Initialize Arduino:
+    l_m.initializeArduino()
 
-    # #Close Laser Door:
-    # l_m.LaserDoorClose()
+    #Close Laser Door:
+    l_m.LaserDoorClose()
 
     #Laser:
     EngraveActualDog(laserDexarm);
@@ -68,9 +68,9 @@ if __name__ == "__main__":
     # EngraveUnderLine(laserDexarm,width,height)
 
 
-    # #Wait for 0.5 sec and Open Laser Door:
-    # time.sleep(0.5)
-    # l_m.LaserDoorOpen();
+    #Wait for 0.5 sec and Open Laser Door:
+    time.sleep(0.5)
+    l_m.LaserDoorOpen();
 
 
 

@@ -433,6 +433,7 @@ class OpenCV_Contour_Data():
         self.color = [];
         self.shape = None;
         self.number = None;
+        self.angle = None;
         
         
         self.colorName = None;
@@ -513,7 +514,7 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
         grayImg = cv2.cvtColor(self.imageBGR, cv2.COLOR_BGR2GRAY)
         blurredImg = cv2.GaussianBlur(grayImg, kSize,sigmaX) 
         
-        threshImageGray = cv2.adaptiveThreshold(blurredImg,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY,51,7)#7,7#cv2.threshold(blurredImg, 0, 255, threshType)[1]
+        threshImageGray = cv2.threshold(blurredImg, 0, 255, threshType)[1]
 
         #Opencv needs black background and white objects, so invert image if needed
         if(self.whiteBackground): threshImageGray = cv2.bitwise_not(threshImageGray)
@@ -558,7 +559,7 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
                     contour_data.centerLocation = [int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])]
 
                 #Find Shape of Contour
-                self.ShapeContour(contour_data)
+                self.ShapeAngleContour(contour_data)
 
                 contourNum +=1;
 
@@ -585,7 +586,7 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
             else:
                 print(contourObject.number, contourObject.area)
 
-    def ShapeContour(self, contour_data):
+    def ShapeAngleContour(self, contour_data):
         #Input: single contour object 
         #Fill shape property in contour object
  
@@ -603,7 +604,7 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
             #IF error is less than 10% than return that's it's a circle
             if(error<10):
                 contour_data.shape="CIRCLE"
-                return;
+                return approx;
 
             numVertices = len(vertices);
             if(numVertices==3):
@@ -617,12 +618,22 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
             
             else:
                 contour_data.shape =str(numVertices)+" EDGES"
+            
+            return approx;
 
+        
 
         perimeter = cv2.arcLength(contour_data.contourOpenCV, True)
         vertices = cv2.approxPolyDP(contour_data.contourOpenCV, self.param.minEdgePercent * perimeter, True);
         contour_data.vertices = vertices;
-        shapeFromVertices(vertices, contour_data)
+
+        approx = shapeFromVertices(vertices, contour_data)
+
+        #Find angle:
+        _,_,contourAngle = cv2.minAreaRect(approx)
+        contour_data.angle = round(contourAngle,1);
+
+
 
     def PixelsInContour(self):
         #Input: All contour objects -> Max 255 objects

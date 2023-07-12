@@ -13,7 +13,7 @@ import numpy as np
 import time
 
 #Start up camera
-camera0 = i_m.Camera_Object(cameraNum=0,cameraType=i_m.BIG_CAMERA)
+camera0 = i_m.Camera_Object(cameraNum=1,cameraType=i_m.BIG_CAMERA)
 
 while True:
     #Get undistorted image in BGR Format
@@ -38,7 +38,7 @@ while True:
         centerX = contourObject.centerLocation[0]
         centerY = contourObject.centerLocation[1]
         textString = "Center: "+str(contourObject.centerLocation[0])+", "+str(contourObject.centerLocation[1])+"; Color: "
-        textString+=str(contourObject.colorName)+"; Shape: "
+        textString+=str(contourObject.angle)+"; Shape: "
         textString+=contourObject.shape
         cv2.putText(contourImageData, textString, (centerX - 20, centerY - 20),
             cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2)

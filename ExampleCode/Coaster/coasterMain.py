@@ -28,7 +28,6 @@ def initializeRobotArms():
     pickerDexarm.go_home()
 def initializeCamera():
     global camera0
-    i_m.setGoogleEnviroment()
     camera0 = i_m.Camera_Object(cameraNum=0,cameraType=i_m.BIG_CAMERA)
 
 

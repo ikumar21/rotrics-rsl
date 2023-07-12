@@ -27,9 +27,12 @@ def CutShapes(laserDexarm):
 if __name__ == "__main__":
     #Establish connection with Laser Arm:  
     laserDexarm = Dexarm(port="COM4");
+
     #Initialize Arm:
     laserDexarm.go_home();
 
+    #Generate G-code:
     CutShapes(laserDexarm);
     
+    #Run Laser
     l_m.runLaser(laserDexarm)

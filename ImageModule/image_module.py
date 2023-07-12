@@ -449,7 +449,7 @@ class Open_CV_Parameters():
         self.whiteBackground = True;
 
         #Thresh Image Parameters:
-        self.kSize,self.sigmaX, self.threshType  = (5,5), 0, cv2.THRESH_BINARY | cv2.THRESH_OTSU
+        self.kSize,self.sigmaX, self.threshType  = (7,7), 0, cv2.THRESH_BINARY | cv2.THRESH_OTSU
 
         #Finding Contour Parameters:
         self.cMode, self.cMethod = cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
@@ -513,7 +513,7 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
         grayImg = cv2.cvtColor(self.imageBGR, cv2.COLOR_BGR2GRAY)
         blurredImg = cv2.GaussianBlur(grayImg, kSize,sigmaX) 
         
-        threshImageGray = cv2.threshold(blurredImg, 0, 255, threshType)[1]
+        threshImageGray = cv2.adaptiveThreshold(blurredImg,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY,51,7)#7,7#cv2.threshold(blurredImg, 0, 255, threshType)[1]
 
         #Opencv needs black background and white objects, so invert image if needed
         if(self.whiteBackground): threshImageGray = cv2.bitwise_not(threshImageGray)
@@ -600,8 +600,8 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
 
             print("Error:", error)
 
-            #IF error is less than 7% than return that's it's a circle
-            if(error<7):
+            #IF error is less than 10% than return that's it's a circle
+            if(error<10):
                 contour_data.shape="CIRCLE"
                 return;
 
@@ -745,6 +745,9 @@ class Open_CV_Analysis():#Call this to get opencv data for contours in undistort
                 color.append(self.imageHSV[y,x])
                 cnt = cnt + 1
         color = np.array(color)
+
+        if (len(color)==0):
+            return [0,0,0], "NONE"
 
         # exclude outlier data (2 std devs)
         mnHSV = np.zeros(3)

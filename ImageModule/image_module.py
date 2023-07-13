@@ -79,7 +79,7 @@ def FisheyeEquations(x, u_adjusted,v_adjusted ):
              u_adjusted-x[1]*x[3]/x[2],
              v_adjusted-x[1]*x[4]/x[2]]
 
-def RealWorldCoordinates(centerLocation, heightObject, robotPosition):
+def RealWorldCoordinates(centerLocation, heightObject, robotPosition, endEffectorShift):
     #Returns real world coordinates from pixel location
     #Input: center location in pixels: [x,y]; height of object (mm), position of rotrics arm: [x,y,z]
     #Output: returns real world coordinates in mm [x,y]
@@ -99,7 +99,7 @@ def RealWorldCoordinates(centerLocation, heightObject, robotPosition):
     y_c = sol[4]*z_c;
 
     x_e = x_c*1.0;
-    y_e = -y_c*1.0-61.0;#y axis is flipped and translated upwards 
+    y_e = -y_c*1.0-endEffectorShift;#y axis is flipped and translated upwards 
     z_e = 0.0;#dummy z
 
     P_e = np.array([[x_e],[y_e], [z_e], [1]])

@@ -10,10 +10,10 @@ from pydexarm import Dexarm
 
 
 def CutShapes(laserDexarm):
-    fileLocName = "LaserModule/rotricsGcode/shapes.gcode";
+    fileLocName = "LaserModule/rotricsGcode/CircleOutline.gcode";
     
     #Set laser object center, angle, height/width, laser power:
-    shapes_prop = l_m.Laser_Object_Properties(fixHeight=False,centerPoint=[0,300],specifiedLength=275,laserPower=255,angle=0)
+    shapes_prop = l_m.Laser_Object_Properties(fixHeight=False,centerPoint=[60,350],specifiedLength=35,laserPower=50,angle=0)
 
     #Change Speed:
     shapes_prop.movingFeedrate=800;

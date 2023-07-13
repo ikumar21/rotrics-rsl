@@ -37,7 +37,7 @@ def EngraveCircle(laserRobot, centerLoc):
     fileLocName = "LaserModule/rotricsGcode/CircleOutline.gcode";
     
     #Set laser object center, angle, height/width, laser power:
-    circle_prop = l_m.Laser_Object_Properties(fixHeight=True,centerPoint=centerLoc,specifiedLength=10,laserPower=125,angle=0)
+    circle_prop = l_m.Laser_Object_Properties(fixHeight=True,centerPoint=centerLoc,specifiedLength=5,laserPower=125,angle=0)
     
     #Generate G-Code:
     width, height = l_m.GcodeObjectCreation(fileLocName,circle_prop)
@@ -45,20 +45,81 @@ def EngraveCircle(laserRobot, centerLoc):
     #Run the Laser
     l_m.runLaser(laserRobot)
 
+def GetRobotPosition(robotDex:Dexarm):
+    x,y,z,e,_,_,_ =robotDex.get_current_position()
+    return [x,y,z];
+
+
+def FindLocation(robotDexarm:Dexarm,startingCoordinates):
+
+    coordinatesMove = startingCoordinates
+    incrementX = 0;
+    while True:
+
+        #Move to better view
+        robotDexarm.move_to(*coordinatesMove)
+
+        #Find the details of the object in the middle:
+        contour_middle_object:i_m.OpenCV_Contour_Data = getCentralObjectDetails(camera0)
+
+        #Find where the robot is:
+        robotPos = GetRobotPosition(robotDexarm);
+
+        #Determine Real World Location of center:
+        realWorldLocationX, realWorldLocationY, solutionClose = i_m.RealWorldCoordinates(contour_middle_object.centerLocation,heightOfObject,robotPos,yShift)
+        
+        #If not accurate; move to another location->Try again
+        if False in solutionClose:
+            if(incrementX>5):
+                coordinatesMove=(coordinatesMove[0]-1,coordinatesMove[1]-1,coordinatesMove[2])
+            else:
+                incrementX+=1;
+                coordinatesMove=(coordinatesMove[0]+1,coordinatesMove[1],coordinatesMove[2])
+            print("Not Found")
+        else: 
+            print("Found")
+            break;
+    return round(realWorldLocationX,2),round(realWorldLocationY,2)
+
+
 if __name__ == "__main__":
     #Settings:
-    heightOfObject = 4;#mm
-    yShift = 55;#mm
+    heightOfObject = 23;#mm
+    yShift = 48;#mm
 
     #Initialize Camera:
     camera0 = initializeCamera()
 
-    #Find the details of the object in the middle:
-    contour_middle_object:i_m.OpenCV_Contour_Data = getCentralObjectDetails(camera0)
+    #Establish connection with Laser Arm:  
+    laserDexarm = Dexarm(port="COM4");
+    
+    #Initialize Arm:
+    laserDexarm.go_home();
 
-    #Find where the robot is:
+    # #Initialize Arduino:
+    # l_m.initializeArduino()
 
-    #Determine Real World Location of center:
-    realWorldLocationX, realWorldLocationY = i_m.RealWorldCoordinates(contour_middle_object.centerLocation,heightOfObject,)
+    # #Open Laser Door:
+    # l_m.LaserDoorOpen()
 
-    #Laser a circle of 10 mm around the center:
+
+    #Get Location of object:
+    locX, locY = FindLocation(laserDexarm, (5,366,71))
+
+    print("Pos Found", locX,locY)
+
+    #Get Closer to Object and find more accurate Position:
+    if (locX<-67):
+        locX=-67;
+    else:
+        locX =min(locX,45);
+    locX, locY = FindLocation(laserDexarm, (locX,min(395,locY+40),25))
+    print(laserDexarm.get_current_position())
+    print("Pos Found", locX,locY)
+
+    # #Close Laser Door:
+    # l_m.LaserDoorClose()
+
+    # #Laser a circle of 10 mm around the center:
+    # EngraveCircle(laserDexarm,[locX,locY])
+

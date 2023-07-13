@@ -89,9 +89,10 @@ def RealWorldCoordinates(centerLocation, heightObject, robotPosition, endEffecto
     u_adjusted = (centerX*1.0-FISHEYE_CX)/FISHEYE_FX
     v_adjusted = (centerY*1.0-FISHEYE_CY)/FISHEYE_FY
     sol = fsolve(FisheyeEquations, [1, 1,1,1,1], args=(u_adjusted, v_adjusted))
-    print(np.isclose(FisheyeEquations(sol, u_adjusted, v_adjusted), [0.0, 0.0,0.0,0.0,0.0]))
     
-    
+    solClose = np.isclose(FisheyeEquations(sol, u_adjusted, v_adjusted), [0.0, 0.0,0.0,0.0,0.0])
+    print(solClose)
+
     #z Distance from object to camera:
     z_c = Z_DISTANCE_TABLE_CAMERA-heightObject+robotPosition[2]
 
@@ -114,7 +115,7 @@ def RealWorldCoordinates(centerLocation, heightObject, robotPosition, endEffecto
     P_r = np.matmul(T_r_e,P_e);#Multiply homogeneous transform by position in end-effector frame to get position in robot/global frame
     print(P_r[0],P_r[1])
     #print("="*80)
-    return P_r[0][0], P_r[1][0]
+    return P_r[0][0], P_r[1][0], solClose
 
 def CorrectHSV(hsvArray):
     #Returns tuple : (H,S,V) in correct format: 0-360degrees, 0-100%, 0-100%

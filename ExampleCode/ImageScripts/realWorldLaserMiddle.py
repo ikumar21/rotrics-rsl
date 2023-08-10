@@ -96,11 +96,11 @@ if __name__ == "__main__":
     #Initialize Arm:
     laserDexarm.go_home();
 
-    # #Initialize Arduino:
-    # l_m.initializeArduino()
+    #Initialize Arduino:
+    l_m.initializeArduino()
 
-    # #Open Laser Door:
-    # l_m.LaserDoorOpen()
+    #Open Laser Door:
+    l_m.LaserDoorOpen()
 
 
     #Get Location of object:

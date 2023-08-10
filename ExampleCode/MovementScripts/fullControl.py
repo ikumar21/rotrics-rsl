@@ -39,7 +39,7 @@ import sys
 
 #Open communication with dexarm
 #Windows: 
-dexarm1 = Dexarm(port="COM4")
+dexarm1 = Dexarm(port="COM6")
 
 #First Initialize Dexarm:
 #Factory Settings: Home -> (0,300,0)

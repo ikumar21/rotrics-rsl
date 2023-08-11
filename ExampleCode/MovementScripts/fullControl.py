@@ -55,32 +55,32 @@ def robotPrintLocation():
     print(x,y,z,e, "mm")
 
 def robotLeft(stepIncrement, feedrate):
-    dexarm1._send_cmd("G92 X0 Y0 Z0 E0\r"); #Zeros position
+    dexarm1._send_cmd("G92 X0 Y0 Z0\r"); #Zeros position
     dexarm1.move_to(x=-stepIncrement,feedrate=feedrate)
     dexarm1._send_cmd("G92.1\r");#Resets to home
 
 def robotRight(stepIncrement, feedrate):
-    dexarm1._send_cmd("G92 X0 Y0 Z0 E0\r"); #Zeros position
+    dexarm1._send_cmd("G92 X0 Y0 Z0\r"); #Zeros position
     dexarm1.move_to(x=stepIncrement,feedrate=feedrate)
     dexarm1._send_cmd("G92.1\r");#Resets to home
 
 def robotAway(stepIncrement, feedrate):
-    dexarm1._send_cmd("G92 X0 Y0 Z0 E0\r"); #Zeros position
+    dexarm1._send_cmd("G92 X0 Y0 Z0\r"); #Zeros position
     dexarm1.move_to(y=stepIncrement,feedrate=feedrate)
     dexarm1._send_cmd("G92.1\r");#Resets to home
 
 def robotTowards(stepIncrement, feedrate):
-    dexarm1._send_cmd("G92 X0 Y0 Z0 E0\r"); #Zeros position
+    dexarm1._send_cmd("G92 X0 Y0 Z0\r"); #Zeros position
     dexarm1.move_to(y=-stepIncrement,feedrate=feedrate)
     dexarm1._send_cmd("G92.1\r");#Resets to home
 
 def robotUp(stepIncrement, feedrate):
-    dexarm1._send_cmd("G92 X0 Y0 Z0 E0\r"); #Zeros position
+    dexarm1._send_cmd("G92 X0 Y0 Z0\r"); #Zeros position
     dexarm1.move_to(z=stepIncrement,feedrate=feedrate)
     dexarm1._send_cmd("G92.1\r");#Resets to home
 
 def robotDown(stepIncrement, feedrate):
-    dexarm1._send_cmd("G92 X0 Y0 Z0 E0\r"); #Zeros position
+    dexarm1._send_cmd("G92 X0 Y0 Z0\r"); #Zeros position
     dexarm1.move_to(z=-stepIncrement,feedrate=feedrate)
     dexarm1._send_cmd("G92.1\r");#Resets to home
 
@@ -148,17 +148,23 @@ while True:
     #Move accessory:
     if keyboard.is_pressed('left arrow'):
         if(robotConnectedConveyor):
-            conveyorMov(beltSpeed, 0)
+            conveyorMov(beltSpeed, 1)
         elif(robotConnectedRail):
-            dexarm1._send_cmd("G92 X0 Y0 Z0 E0\r"); #Zeros position
-            dexarm1.move_to(e=-railStep,feedrate=speedRobot)
+            dexarm1._send_cmd("G92 X0 Y0 Z0\r"); #Zeros position
+            #Get robot sliding rail position:
+            _,_,_,eRail,_,_,_ =dexarm1.get_current_position()
+
+            dexarm1.move_to(e=-railStep+eRail,feedrate=speedRobot)
             dexarm1._send_cmd("G92.1\r");#Resets to home
     if keyboard.is_pressed('right arrow'):
         if(robotConnectedConveyor):
-            conveyorMov(beltSpeed, 1)
+            conveyorMov(beltSpeed, 0)
         elif(robotConnectedRail):
-            dexarm1._send_cmd("G92 X0 Y0 Z0 E0\r"); #Zeros position
-            dexarm1.move_to(e=railStep,feedrate=speedRobot)
+            dexarm1._send_cmd("G92 X0 Y0 Z0\r"); #Zeros position
+            #Get robot sliding rail position:
+            _,_,_,eRail,_,_,_ =dexarm1.get_current_position()
+
+            dexarm1.move_to(e=railStep+eRail,feedrate=speedRobot)
             dexarm1._send_cmd("G92.1\r");#Resets to home
     if keyboard.is_pressed('space'): 
         if(robotConnectedConveyor):
@@ -189,19 +195,3 @@ while True:
     #Exit Program:
     if keyboard.is_pressed('ESC'):
         sys.exit()
-
-"""
-Timing Function:
-count =0;
-        now_ns = time.time_ns() # Time in nanoseconds
-        start_time = int(now_ns / 1000000) #Time in Milliseconds
-        while True:
-            keyboard.read_key()
-            if keyboard.is_pressed('f'):
-                count+=1
-                if count ==100:
-                    break;
-        now_ns = time.time_ns() # Time in nanoseconds
-        stopTime = int(now_ns / 1000000) #Time in Milliseconds
-        print(stopTime-start_time)
-"""

@@ -39,7 +39,7 @@ import sys
 
 #Open communication with dexarm
 #Windows: 
-dexarm1 = Dexarm(port="COM6")
+dexarm1 = Dexarm(port="COM19")
 
 #First Initialize Dexarm:
 #Factory Settings: Home -> (0,300,0)
@@ -47,7 +47,7 @@ dexarm1.go_home()#Goes to robot home position
 
 
 robotConnectedConveyor = False;
-robotConnectedRail = False;
+robotConnectedRail = True;
 
 def robotPrintLocation():
     dexarm1._send_cmd("G92.1\r");#Resets

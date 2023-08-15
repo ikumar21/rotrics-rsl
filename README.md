@@ -28,4 +28,7 @@ Python functions and example code to control the Rotrics Dexarm.
    - The locations of each robot action is stored in Coaster/constants.py
      - fullControl.py can be used to determine all locations 
 5. Tour Demo
-   - 
+   - Two Loops are running at same time
+   - One loop takes a block from stack and puts it in laser room for engraving. Then, block is placed on conveyor.
+   - Second loop moves a block along the conveyor and then sliding robot moves it back to stack.
+   - One block should start at stack, other at conveyor

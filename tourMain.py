@@ -9,13 +9,16 @@ sys.path.insert(0, 'ExampleCode/TourDemo')
 from pydexarm import Dexarm
 import laser_module as l_m
 
+#Adding Constants:
 import constantsTour as c
+
 import time
-import keyboard
 import threading
-import sys
-import serial
-import cv2
+
+
+CollisionLock = threading.Lock()
+BlockAvailable =threading.Lock()
+
 
 def initializeRobotArms():
     global laserDexarm, pickerDexarm, sliderDexarm
@@ -55,7 +58,7 @@ def laserObject():
     fileLocName = "LaserModule/rotricsGcode/CircleOutline.gcode";
     
     #Set laser object center, angle, height/width, laser power:
-    circle_prop = l_m.Laser_Object_Properties(fixHeight=False,centerPoint=[0,310],specifiedLength=10,laserPower=1,angle=0)
+    circle_prop = l_m.Laser_Object_Properties(fixHeight=False,centerPoint=[5,320],specifiedLength=10,laserPower=1,angle=0)
     circle_prop.movingFeedrate=10000;
     circle_prop.laseringFeedrate=800;
     
@@ -79,7 +82,7 @@ def dropObjectConveyor(robotFeedrate):
     pickerDexarm.air_picker_place()
     time.sleep(0.5)
     pickerDexarm.air_picker_stop()
-    # pickerDexarm.move_to(*c.PICKER_CLEAR,feedrate=robotFeedrate)
+    pickerDexarm.move_to(*c.PICKER_CLEAR,feedrate=robotFeedrate)
 
 def moveConveyor():
     pickerDexarm.conveyor_belt_move(c.CONVEYOR_DISTANCE,c.CONVEYOR_SPEED)
@@ -89,19 +92,27 @@ def pickObjectConveyor(robotFeedrate):
 
     sliderDexarm.move_to(*c.CONVEYOR_PICK_UP)
     sliderDexarm.air_picker_place()
-    sliderDexarm.move_to(z=c.CONVEYOR_PICK_UP[2]+20);
+    sliderDexarm.move_to(z=c.CONVEYOR_PICK_UP[2]+20,feedrate=robotFeedrate);
 
 def dropObjectStack(robotFeedrate):
-    sliderDexarm.move_to(c.STACK_DROP_OFF[0],c.STACK_DROP_OFF[1],c.STACK_DROP_OFF[2]+115,c.STACK_DROP_OFF[3],feedrate=robotFeedrate)
-    sliderDexarm.move_to(z=c.STACK_DROP_OFF[2])
+    sliderDexarm.move_to(c.STACK_DROP_OFF[0],c.STACK_DROP_OFF[1],c.STACK_DROP_OFF[2]+115,c.STACK_DROP_OFF[3],feedrate=robotFeedrate/3)
+    sliderDexarm.move_to(z=c.STACK_DROP_OFF[2],feedrate=robotFeedrate)
     sliderDexarm.air_picker_pick()
-    sliderDexarm.move_to(z=c.STACK_DROP_OFF[2]+115)
+    sliderDexarm.move_to(z=c.STACK_DROP_OFF[2]+115,feedrate=robotFeedrate)
     sliderDexarm.air_picker_stop()
-    sliderDexarm.go_home()
+    sliderDexarm.move_to(0,300,0,feedrate=robotFeedrate)
 
 def FirstLoop():
+    print("Acquiring block avai. lock")
+    BlockAvailable.acquire()
+    print("Got block avai. lock")
+
     pickObjectStack(30000);
+
     dropObjectLaser(30000)
+    print("Releasing collision lock")
+    CollisionLock.release()
+
     l_m.LaserDoorClose()
     laserObject()
     laserDexarm.move_to(*c.LASER_CLEAR,feedrate=30000,wait=True)
@@ -111,21 +122,58 @@ def FirstLoop():
     dropObjectConveyor(30000)
 
 def SecondLoop():
+    print("Acquiring collision lock")
+    CollisionLock.acquire()
+    print("Got collision lock")
+
     moveConveyor();
     pickObjectConveyor(30000)
-    dropObjectStack(10000)
+    dropObjectStack(30000)
+    print("Releasing block avai. lock")
+    BlockAvailable.release()
+
+    #Move sliding robot:
+    sliderDexarm.move_to(e=c.CONVEYOR_PICK_UP[3])
+
+
+def ThreadLoop1():
+    count=0;
+    while True:
+        count+=1;
+        FirstLoop()
+        if count==3:
+            break;
+def ThreadLoop2():
+    count=0;
+    while True:
+        count+=1;
+        SecondLoop()
+        if count==3:
+            break;
+
+
 
 if __name__ == "__main__":
+    #Initialize:
     l_m.initializeArduino(False);
     initializeRobotArms()
-    startTime = time.monotonic_ns()
-    FirstLoop()
-    firstLoopTime = (time.monotonic_ns()-startTime)*10**-9
 
-    startTime = time.monotonic_ns()
-    SecondLoop()
-    secondLoopTime = (time.monotonic_ns()-startTime)*10**-9
+
+    thread1 = threading.Thread(target=ThreadLoop1)
+    thread2  = threading.Thread(target=ThreadLoop2)
+
+    thread1.start()
+    CollisionLock.acquire()
+    thread2.start()
     
-    print("First Loop:", firstLoopTime)
-    print("Second Loop",secondLoopTime)
+    # startTime = time.monotonic_ns()
+    # FirstLoop()
+    # firstLoopTime = (time.monotonic_ns()-startTime)*10**-9
+
+    # startTime = time.monotonic_ns()
+    # SecondLoop()
+    # secondLoopTime = (time.monotonic_ns()-startTime)*10**-9
+    
+    # print("First Loop:", firstLoopTime)
+    # print("Second Loop",secondLoopTime)
 

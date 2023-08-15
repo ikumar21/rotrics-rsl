@@ -39,7 +39,7 @@ class Dexarm:
             serial_str = self.ser.readline().decode("utf-8")
             if len(serial_str) > 0:
                 if serial_str.find("ok") > -1:
-                    print("read ok")
+                    # print("read ok")
                     break
                 else:
                     print("read：", serial_str)
@@ -278,9 +278,15 @@ class Dexarm:
             runForMS = 2*round((60.0/speed)*abs(position)*1000.0)
 
             while(True):
+                
                 now_ns = time.time_ns() # Time in nanoseconds
                 now_ms = int(now_ns / 1000000)
                 timeElapsed = now_ms-start_time;
+                if(runForMS<timeElapsed+400):
+                    time.sleep(0.25)
+                else:
+                    time.sleep(0.01)
+
                 if(runForMS<timeElapsed):
                     break;
             print(start_time,now_ms,now_ms-start_time)

@@ -27,3 +27,5 @@ Python functions and example code to control the Rotrics Dexarm.
      - "DOG" -> Conveyor Belt is used to drop coaster
    - The locations of each robot action is stored in Coaster/constants.py
      - fullControl.py can be used to determine all locations 
+5. Tour Demo
+   - 

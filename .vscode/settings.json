@@ -2,6 +2,7 @@
     "python.analysis.extraPaths": [
         "./ImageModule",
         "./LaserModule",
-        "./MovementModule"
+        "./MovementModule",
+        "./ExampleCode/TourDemo"
     ]
 }

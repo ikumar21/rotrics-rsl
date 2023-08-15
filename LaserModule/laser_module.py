@@ -199,10 +199,11 @@ def runLaser(lasDexarm):
             a = x+"\r\n"
             lasDexarm._send_cmd(a);
 
-def initializeArduino():
+def initializeArduino(wait=True):
     global laserArduinoSerial
     laserArduinoSerial = serial.Serial("COM7", 115200, timeout=0.2)
-    time.sleep(3)
+    if wait==True:
+        time.sleep(3)
 def LaserDoorClose():
     message = "$C\n"
     laserArduinoSerial.write((bytes(message, 'utf-8')))

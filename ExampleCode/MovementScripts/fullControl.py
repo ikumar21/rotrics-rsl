@@ -1,5 +1,5 @@
 """
-Script to move the robot arm freely and/or the sliding rail/conveyor belt
+Script to move the robot arrm freely and/or the sliding rail/conveyor belt
 Purpose: See the Robot position in certain locations
 
 Commands:
@@ -39,7 +39,7 @@ import sys
 
 #Open communication with dexarm
 #Windows: 
-dexarm1 = Dexarm(port="COM19")
+dexarm1 = Dexarm(port="COM6")
 
 #First Initialize Dexarm:
 #Factory Settings: Home -> (0,300,0)
@@ -47,7 +47,7 @@ dexarm1.go_home()#Goes to robot home position
 
 
 robotConnectedConveyor = False;
-robotConnectedRail = True;
+robotConnectedRail = False;
 
 def robotPrintLocation():
     dexarm1._send_cmd("G92.1\r");#Resets

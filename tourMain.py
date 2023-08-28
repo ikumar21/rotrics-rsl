@@ -29,12 +29,13 @@ def initializeRobotArms():
     sliderDexarm.go_home()
     pickerDexarm.go_home()
     sliderDexarm.sliding_rail_init();
+    pickerDexarm._send_cmd("G92.1\r\n")
+    laserDexarm._send_cmd("G92.1\r\n")
+    sliderDexarm._send_cmd("G92.1\r\n")
 
 def pickObjectStack(robotFeedrate):
     laserDexarm.move_to(*c.LASER_CLEAR,wait=False)
     pickerDexarm.move_to(*c.PICKER_CLEAR,feedrate=robotFeedrate)
-    
-    
     blockLocation = c.STACK_PICK_UP; 
     pickerDexarm.move_to(blockLocation[0],blockLocation[1],feedrate=robotFeedrate)
     pickerDexarm.move_to(z=blockLocation[2],feedrate=robotFeedrate)
@@ -44,8 +45,9 @@ def pickObjectStack(robotFeedrate):
 
 
 def dropObjectLaser(robotFeedrate):
-    pickerDexarm.move_to(0,300,0,feedrate=robotFeedrate)
-    pickerDexarm.move_to(*c.LASER_DROP_OFF,feedrate=robotFeedrate)
+    pickerDexarm.move_to(0,300,0,feedrate=robotFeedrate,wait=True)
+    pickerDexarm.move_to(*c.LASER_DROP_OFF,feedrate=robotFeedrate,wait=True)
+    # pickerDexarm.move_to(z=c.LASER_DROP_OFF[2]-4,feedrate=robotFeedrate)
     pickerDexarm.air_picker_place()
     pickerDexarm.move_to(c.LASER_DROP_OFF[0],c.LASER_DROP_OFF[1],c.LASER_DROP_OFF[2]+30,feedrate=robotFeedrate)
     pickerDexarm.air_picker_stop()

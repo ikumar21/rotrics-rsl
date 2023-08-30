@@ -1,3 +1,8 @@
+#Import Library
+import sys
+
+#Adding Modules to the system path
+sys.path.insert(0, 'MovementModule')
 from pydexarm import Dexarm
 import math 
 from random import randint
@@ -6,23 +11,25 @@ from random import randint
 '''windows'''
 Xdexarm = Dexarm(port="COM6")
 Odexarm = Dexarm(port="COM4")
-Edexarm = Dexarm(port="COM3")
+Edexarm = Dexarm(port="COM19")
 '''mac & linux'''
 
 #### RUN ONCE
 # input values (test for now)
 global relax, press, lift
 
+robotFeedrate=16000;
+
 x0 = 0  #origin (x0,y0)
 y0 = 300
 L = 150  #side length of tic-tac-toe board
 
 relax = [0,190,0]       #arm position to keep out of way of other arms
-press = -35             #z-value to press marker into board
-lift = -20              #z-value to lift marker slightly above board
+press = -45             #z-value to press marker into board
+lift = -30              #z-value to lift marker slightly above board
 
 pressE = -50
-liftE = 150
+liftE = 165
 
 # calculations
 global pc, R, win, win0, XtoO, poss
@@ -49,10 +56,10 @@ gameType = 0
 
 # functions
 def lineDraw(dexarm,p1,p2):
-    dexarm.move_to(p1[0], p1[1], lift)
-    dexarm.move_to(None, None, press)
-    dexarm.move_to(p2[0], p2[1], press)
-    dexarm.move_to(None, None, lift)
+    dexarm.move_to(p1[0], p1[1], lift,feedrate=robotFeedrate)
+    dexarm.move_to(None, None, press,feedrate=robotFeedrate)
+    dexarm.move_to(p2[0], p2[1], press,feedrate=robotFeedrate)
+    dexarm.move_to(None, None, lift,feedrate=robotFeedrate)
 
 def XDraw(dexarm,loc):
     # center points of square
@@ -60,16 +67,16 @@ def XDraw(dexarm,loc):
     yc = pc[1][loc]
         
     # draw first X line
-    dexarm.move_to(xc-L/12, yc+L/12, lift)
-    dexarm.move_to(None, None, press)
-    dexarm.move_to(xc+L/12, yc-L/12, press)
-    dexarm.move_to(None, None, lift)
+    dexarm.move_to(xc-L/12, yc+L/12, lift,feedrate=robotFeedrate)
+    dexarm.move_to(None, None, press,feedrate=robotFeedrate)
+    dexarm.move_to(xc+L/12, yc-L/12, press,feedrate=robotFeedrate)
+    dexarm.move_to(None, None, lift,feedrate=robotFeedrate)
     
     # draw second X line
-    dexarm.move_to(xc+L/12, yc+L/12, lift)
-    dexarm.move_to(None, None, press)
-    dexarm.move_to(xc-L/12, yc-L/12, press)
-    dexarm.move_to(None, None, lift)
+    dexarm.move_to(xc+L/12, yc+L/12, lift,feedrate=robotFeedrate)
+    dexarm.move_to(None, None, press,feedrate=robotFeedrate)
+    dexarm.move_to(xc-L/12, yc-L/12, press,feedrate=robotFeedrate)
+    dexarm.move_to(None, None, lift,feedrate=robotFeedrate)
 
 def ODraw(dexarm,loc):
     # center points of square (converted to O orientation)
@@ -77,8 +84,8 @@ def ODraw(dexarm,loc):
     yc = pc[1][XtoO[loc]]
 
     # move to circle border
-    dexarm.move_to(xc+R, yc, None)
-    dexarm.move_to(None, None, press)
+    dexarm.move_to(xc+R, yc, None,feedrate=robotFeedrate)
+    dexarm.move_to(None, None, press,feedrate=robotFeedrate)
 
     # draw circumference
     theta = 0
@@ -86,7 +93,7 @@ def ODraw(dexarm,loc):
         dexarm.move_to(R*math.cos(theta) + xc, R*math.sin(theta) + yc, press);
         theta = theta + math.pi/128;
     
-    dexarm.move_to(None, None, lift)
+    dexarm.move_to(None, None, lift,feedrate=robotFeedrate)
 
 def winDraw(Xdexarm,Odexarm,loc,wins):
     # check if X or O won
@@ -95,21 +102,21 @@ def winDraw(Xdexarm,Odexarm,loc,wins):
         XDraw(Xdexarm,loc)
 
         # draw win line
-        Xdexarm.move_to(win[wins[1]][0][0], win[wins[1]][1][0], lift)
-        Xdexarm.move_to(None, None, press)
-        Xdexarm.move_to(win[wins[1]][0][1], win[wins[1]][1][1], press)
-        Xdexarm.move_to(None, None, lift)
-        Xdexarm.move_to(relax[0], relax[1], relax[2])
+        Xdexarm.move_to(win[wins[1]][0][0], win[wins[1]][1][0], lift,feedrate=robotFeedrate)
+        Xdexarm.move_to(None, None, press,feedrate=robotFeedrate)
+        Xdexarm.move_to(win[wins[1]][0][1], win[wins[1]][1][1], press,feedrate=robotFeedrate)
+        Xdexarm.move_to(None, None, lift,feedrate=robotFeedrate)
+        Xdexarm.move_to(relax[0], relax[1], relax[2],feedrate=robotFeedrate)
     else:
         # draw last mark
         ODraw(Odexarm,loc)
         
         # draw win line (using win lines relative to O arm)
-        Odexarm.move_to(winO[wins[1]][0][0], winO[wins[1]][1][0], lift)
-        Odexarm.move_to(None, None, press)
-        Odexarm.move_to(winO[wins[1]][0][1], winO[wins[1]][1][1], press)
-        Odexarm.move_to(None, None, lift)
-        Odexarm.move_to(relax[0], relax[1], relax[2])
+        Odexarm.move_to(winO[wins[1]][0][0], winO[wins[1]][1][0], lift,feedrate=robotFeedrate)
+        Odexarm.move_to(None, None, press,feedrate=robotFeedrate)
+        Odexarm.move_to(winO[wins[1]][0][1], winO[wins[1]][1][1], press,feedrate=robotFeedrate)
+        Odexarm.move_to(None, None, lift,feedrate=robotFeedrate)
+        Odexarm.move_to(relax[0], relax[1], relax[2],feedrate=robotFeedrate)
 
 def winCheck(XorO):
     # check for 2 X's or 2 O's in row/col/diag
@@ -137,36 +144,36 @@ def winCheck(XorO):
     return info
 
 def erase(dexarm,liftE,pressE):
-    dexarm.move_to(0,300,liftE)
+    dexarm.move_to(0,300,liftE,feedrate=robotFeedrate)
 
     # draw 3 row win lines
-    #dexarm.move_to(win[3][0][1], win[3][1][1], pressE)
-    dexarm.move_to(x0+L/2, y0+L/2, pressE)
-    dexarm.move_to(x0-L/2, y0+L/2, pressE)
+    #dexarm.move_to(win[3][0][1], win[3][1][1], pressE,feedrate=robotFeedrate)
+    dexarm.move_to(x0+L/2, y0+L/2, pressE,feedrate=robotFeedrate)
+    dexarm.move_to(x0-L/2, y0+L/2, pressE,feedrate=robotFeedrate)
 
-    dexarm.move_to(win[4][0][0], win[4][1][0], pressE)
-    dexarm.move_to(win[4][0][1], win[4][1][1], pressE)
+    dexarm.move_to(win[4][0][0], win[4][1][0], pressE,feedrate=robotFeedrate)
+    dexarm.move_to(win[4][0][1], win[4][1][1], pressE,feedrate=robotFeedrate)
 
-    dexarm.move_to(win[5][0][0], win[5][1][0], pressE)
-    dexarm.move_to(win[5][0][1], win[5][1][1], pressE)
+    dexarm.move_to(win[5][0][0], win[5][1][0], pressE,feedrate=robotFeedrate)
+    dexarm.move_to(win[5][0][1], win[5][1][1], pressE,feedrate=robotFeedrate)
     
     # move to center
-    dexarm.move_to(x0,y0,pressE)
+    dexarm.move_to(x0,y0,pressE,feedrate=robotFeedrate)
 
-    dexarm.move_to(0,300,liftE)
+    dexarm.move_to(0,300,liftE,feedrate=robotFeedrate)
 
 # setup
 Edexarm.go_home()
 Edexarm._send_cmd("G92.1\r\n")
-Edexarm.move_to(0,300,liftE)
+Edexarm.move_to(0,300,liftE,feedrate=robotFeedrate)
 
 Xdexarm.go_home()
 Xdexarm._send_cmd("G92.1\r\n")
-Xdexarm.move_to(relax[0], relax[1], relax[2])
+Xdexarm.move_to(relax[0], relax[1], relax[2],feedrate=robotFeedrate)
 
 Odexarm.go_home()
 Odexarm._send_cmd("G92.1\r\n")
-Odexarm.move_to(relax[0], relax[1], relax[2])
+Odexarm.move_to(relax[0], relax[1], relax[2],feedrate=robotFeedrate)
 
 while True:
     #### FULL GAME (once per game)
@@ -182,12 +189,11 @@ while True:
     lineDraw(Xdexarm, [AB[1][0][0], AB[1][1][0]], [AB[1][0][1], AB[1][1][1]])
     lineDraw(Odexarm, [AB[1][0][0], AB[1][1][0]], [AB[1][0][1], AB[1][1][1]])
 
-    Xdexarm.move_to(relax[0], relax[1], relax[2])
-    Odexarm.move_to(relax[0], relax[1], relax[2])
+    Xdexarm.move_to(relax[0], relax[1], relax[2],feedrate=robotFeedrate)
+    Odexarm.move_to(relax[0], relax[1], relax[2],feedrate=robotFeedrate)
 
     # iterate for maximum 9 possible moves (i = 0:4)
     for i in range(5):
-        
         #### X move
         loc = None  #location to draw
         wins = None  #who wins, and win number
@@ -216,7 +222,7 @@ while True:
         
         #  draw X
         XDraw(Xdexarm,loc)
-        Xdexarm.move_to(relax[0], relax[1], relax[2])
+        Xdexarm.move_to(relax[0], relax[1], relax[2],feedrate=robotFeedrate)
 
         #  check if board full
         if sum(board) == 21:  #only = 21 when 5 X's & 4 O's (X always starts in tic-tac-toe)
@@ -251,7 +257,7 @@ while True:
         #   update board with move
         board[loc] = 4
         ODraw(Odexarm,loc)
-        Odexarm.move_to(relax[0], relax[1], relax[2])
+        Odexarm.move_to(relax[0], relax[1], relax[2],feedrate=robotFeedrate)
         
         print(i);print(board[0:3]);print(board[3:6]);print(board[6:9]) # display matrix
         
@@ -263,8 +269,8 @@ while True:
 
     # reset board
     #  move draw arms to relax position
-    Xdexarm.move_to(relax[0], relax[1], relax[2])
-    Odexarm.move_to(relax[0], relax[1], relax[2])
+    Xdexarm.move_to(relax[0], relax[1], relax[2],feedrate=robotFeedrate)
+    Odexarm.move_to(relax[0], relax[1], relax[2],feedrate=robotFeedrate)
 
     # erase board
     erase(Edexarm,liftE,pressE)

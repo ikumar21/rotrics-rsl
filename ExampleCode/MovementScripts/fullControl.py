@@ -39,7 +39,7 @@ import sys
 
 #Open communication with dexarm
 #Windows: 
-dexarm1 = Dexarm(port="COM6")
+dexarm1 = Dexarm(port="COM4")
 
 #First Initialize Dexarm:
 #Factory Settings: Home -> (0,300,0)
@@ -72,7 +72,7 @@ def robotAway(stepIncrement, feedrate):
 def robotTowards(stepIncrement, feedrate):
     dexarm1._send_cmd("G92 X0 Y0 Z0\r"); #Zeros position
     dexarm1.move_to(y=-stepIncrement,feedrate=feedrate)
-    dexarm1._send_cmd("G92.1\r");#Resets to home
+    dexarm1._send_cmd("G92.r1\r");#Resets to home
 
 def robotUp(stepIncrement, feedrate):
     dexarm1._send_cmd("G92 X0 Y0 Z0\r"); #Zeros position
